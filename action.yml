@@ -1,0 +1,34 @@
+name: Create release JIRA task
+description: "A GitHub Action to create release Jira task"
+branding:
+  icon: "git-pull-request"
+  color: purple
+inputs:
+  github-token:
+    description: "Token for GitHub access"
+    required: true
+  projectName:
+    description: "Xcode pbxprodj file name"
+    required: true
+  versionSuffix:
+    description: "It will be appended before version"
+    required: true
+  jiraAccount:
+    description: "Jira account"
+    required: true
+  jiraToken:
+    description: "Jira access token"
+    required: true
+  jiraHost:
+    description: "Jira Host"
+    required: true
+    default: "taxify.atlassian.net"
+  jiraProjectId:
+    description: "Id of Jira Projects where to create release version and ticket \"1111\""
+    required: true
+  jiraTaskTypeId:
+    description: "Id of Jira task type to create ticket with \"22222\""
+    required: true
+runs:
+  using: "node12"
+  main: "dist/index.js"

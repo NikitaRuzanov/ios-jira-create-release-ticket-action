@@ -1,0 +1,49 @@
+{
+  "name": "create-release-jira-ticket",
+  "version": "1.0.0",
+  "description": "A GitHub Action to create a release ticket in Jira",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NikitaRuzanov/ios-jira-create-release-ticket-action.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NikitaRuzanov/ios-jira-create-release-ticket-action"
+  },
+  "homepage": "https://github.com/NikitaRuzanov/ios-jira-create-release-ticket-action#readme",
+  "dependencies": {
+    "@actions/core": "^1.2.4",
+    "@actions/github": "^1.1.0",
+    "@octokit/request": "^5.4.7",
+    "execa": "^2.0.4",
+    "jira.js": "^1.6.0",
+    "typescript": "^3.6.3"
+  },
+  "devDependencies": {
+    "@semantic-release/git": "^7.0.18",
+    "@zeit/ncc": "^0.20.5",
+    "semantic-release": "^15.14.0"
+  },
+  "release": {
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      [
+        "@semantic-release/git",
+        {
+          "assets": [
+            "dist/index.js"
+          ],
+          "message": "build(release): compiled action for ${nextRelease.version}\n\n[skip ci]"
+        }
+      ],
+      "@semantic-release/github"
+    ]
+  }
+}
