@@ -26,9 +26,9 @@
     "typescript": "^3.6.3"
   },
   "devDependencies": {
-    "@semantic-release/git": "^7.0.18",
+    "@semantic-release/git": "^9.0.0",
     "@zeit/ncc": "^0.20.5",
-    "semantic-release": "^15.14.0"
+    "semantic-release": "^17.1.1"
   },
   "release": {
     "plugins": [
