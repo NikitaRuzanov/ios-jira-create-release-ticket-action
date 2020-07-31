@@ -4,7 +4,7 @@ import { command } from "execa";
 import core from "@actions/core";
 //const { request } = require("@octokit/request");
 
-import {context, GitHub} from '@actions/github'
+import * as github from '@actions/github';
 
 main();
 
@@ -47,14 +47,20 @@ async function main() {
     core.debug(`Inputs: ${inspect(inputs)}`);
 
     const token = core.getInput('github-token', {required: true})
-    const client = new GitHub(token, { })
+    const octokit = github.getOctokit(token);
+    let { owner, repo } = github.context.repo;
 
     // checking the branch
     const brachRegexp = new RegExp(`release\/${inputs.versionSuffix}.\\d{1,2}.\\d{1,3}`)
     const brachVerification = process.env.GITHUB_HEAD_REF.match(/release/gmi)
     if (brachVerification == null) {
       const body = `Wrong brach format. Please fix it. Expected format is ${brachRegexp}`
-      await client.issues.createComment({...context.issue, body: body})
+      await octokit.issues.createComment({
+        owner,
+        repo,
+        issue_number: github.context.issue.number,
+        body
+      });
       throw "Wrong branch format"
     }
 
@@ -123,7 +129,12 @@ async function main() {
     if (errors.length > 0) {
       body = body + `\n\n🆘 There are errors while creating release ticket: \n\n ${errors.join("\n\n")}`
     }
-    await client.issues.createComment({...context.issue, body: body})
+    await octokit.issues.createComment({
+      owner,
+      repo,
+      issue_number: github.context.issue.number,
+      body
+    });
 
   } catch (error) {
     core.debug(inspect(error));

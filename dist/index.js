@@ -1,14 +1,33 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const util_1 = require("util");
+const jira_js_1 = require("jira.js");
 const execa_1 = require("execa");
 const core_1 = __importDefault(require("@actions/core"));
 //const { request } = require("@octokit/request");
-const jira_js_1 = require("jira.js");
-const github_1 = require("@actions/github");
+const github = __importStar(require("@actions/github"));
 main();
 async function main() {
     if (!process.env.GITHUB_TOKEN) {
@@ -39,13 +58,19 @@ async function main() {
         };
         core_1.default.debug(`Inputs: ${util_1.inspect(inputs)}`);
         const token = core_1.default.getInput('github-token', { required: true });
-        const client = new github_1.GitHub(token, {});
+        const octokit = github.getOctokit(token);
+        let { owner, repo } = github.context.repo;
         // checking the branch
         const brachRegexp = new RegExp(`release\/${inputs.versionSuffix}.\\d{1,2}.\\d{1,3}`);
         const brachVerification = process.env.GITHUB_HEAD_REF.match(/release/gmi);
         if (brachVerification == null) {
             const body = `Wrong brach format. Please fix it. Expected format is ${brachRegexp}`;
-            await client.issues.createComment({ ...github_1.context.issue, body: body });
+            await octokit.issues.createComment({
+                owner,
+                repo,
+                issue_number: github.context.issue.number,
+                body
+            });
             throw "Wrong branch format";
         }
         await runShellCommand(`git fetch origin ${process.env.GITHUB_HEAD_REF}`);
@@ -104,7 +129,12 @@ async function main() {
         if (errors.length > 0) {
             body = body + `\n\n🆘 There are errors while creating release ticket: \n\n ${errors.join("\n\n")}`;
         }
-        await client.issues.createComment({ ...github_1.context.issue, body: body });
+        await octokit.issues.createComment({
+            owner,
+            repo,
+            issue_number: github.context.issue.number,
+            body
+        });
     }
     catch (error) {
         core_1.default.debug(util_1.inspect(error));
