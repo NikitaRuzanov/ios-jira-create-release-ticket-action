@@ -1,10 +1,9 @@
-import { inspect } from "util";
-import { Client } from "jira.js";
-import { command } from "execa";
-import core from "@actions/core";
 //const { request } = require("@octokit/request");
-
 import * as github from '@actions/github';
+import * as core from '@actions/core';
+import * as JiraClient from 'jira.js';
+import * as execa from 'execa';
+import * as util from 'util';
 
 main();
 
@@ -44,7 +43,7 @@ async function main() {
       jiraTaskTypeId: +core.getInput("jiraTaskTypeId")
     };
 
-    core.debug(`Inputs: ${inspect(inputs)}`);
+    core.debug(`Inputs: ${util.inspect(inputs)}`);
 
     const token = core.getInput('github-token', {required: true})
     const octokit = github.getOctokit(token);
@@ -69,8 +68,7 @@ async function main() {
     var version = await runShellCommand(`sed -n '/MARKETING_VERSION/{s/MARKETING_VERSION = //;s/;//;s/^[[:space:]]*//;p;q;}' ./${inputs.projectName}.xcodeproj/project.pbxproj`)
     version = `${inputs.versionSuffix}.${version}`
     core.info("Version number is " + version)
-
-    var jira = new Client({
+    var jira = new JiraClient.Client({
       host: inputs.jiraHost,
       authentication: {
         basic: {
@@ -137,7 +135,7 @@ async function main() {
     });
 
   } catch (error) {
-    core.debug(inspect(error));
+    core.debug(util.inspect(error));
     core.setFailed(error.message);
   }
 }
@@ -145,12 +143,12 @@ async function main() {
 async function runShellCommand(commandString: string) {
   core.debug(`$ ${commandString}`);
   try {
-    const { stdout, stderr } = await command(commandString, { shell: true });
+    const { stdout, stderr } = await execa.command(commandString, { shell: true });
     const output = [stdout, stderr].filter(Boolean).join("\n");
     core.debug(output);
     return output;
   } catch (error) {
-    core.debug(inspect(error));
+    core.debug(util.inspect(error));
     throw error;
   }
 }

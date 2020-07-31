@@ -1107,31 +1107,7 @@ exports.TimeTracking = TimeTracking;
 /***/ }),
 /* 38 */,
 /* 39 */,
-/* 40 */
-/***/ (function(__unusedmodule, exports) {
-
-"use strict";
-
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
-function getUserAgent() {
-  if (typeof navigator === "object" && "userAgent" in navigator) {
-    return navigator.userAgent;
-  }
-
-  if (typeof process === "object" && "version" in process) {
-    return `Node.js/${process.version.substr(1)} (${process.platform}; ${process.arch})`;
-  }
-
-  return "<environment undetectable>";
-}
-
-exports.getUserAgent = getUserAgent;
-//# sourceMappingURL=index.js.map
-
-
-/***/ }),
+/* 40 */,
 /* 41 */,
 /* 42 */,
 /* 43 */,
@@ -2802,7 +2778,7 @@ function coerce(val) {
 "use strict";
 
 
-var net = __webpack_require__(937);
+var net = __webpack_require__(631);
 var tls = __webpack_require__(16);
 var http = __webpack_require__(605);
 var https = __webpack_require__(211);
@@ -3463,7 +3439,7 @@ var utils = __webpack_require__(35);
 var settle = __webpack_require__(564);
 var buildURL = __webpack_require__(133);
 var buildFullPath = __webpack_require__(960);
-var parseHeaders = __webpack_require__(631);
+var parseHeaders = __webpack_require__(333);
 var isURLSameOrigin = __webpack_require__(688);
 var createError = __webpack_require__(26);
 
@@ -5586,16 +5562,16 @@ __exportStar(__webpack_require__(94), exports);
 __exportStar(__webpack_require__(538), exports);
 __exportStar(__webpack_require__(806), exports);
 __exportStar(__webpack_require__(84), exports);
-__exportStar(__webpack_require__(794), exports);
+__exportStar(__webpack_require__(886), exports);
 __exportStar(__webpack_require__(917), exports);
 __exportStar(__webpack_require__(5), exports);
 __exportStar(__webpack_require__(703), exports);
 __exportStar(__webpack_require__(679), exports);
 __exportStar(__webpack_require__(348), exports);
 __exportStar(__webpack_require__(98), exports);
-__exportStar(__webpack_require__(559), exports);
+__exportStar(__webpack_require__(852), exports);
 __exportStar(__webpack_require__(482), exports);
-__exportStar(__webpack_require__(562), exports);
+__exportStar(__webpack_require__(409), exports);
 __exportStar(__webpack_require__(894), exports);
 __exportStar(__webpack_require__(21), exports);
 __exportStar(__webpack_require__(74), exports);
@@ -5643,7 +5619,7 @@ __exportStar(__webpack_require__(37), exports);
 __exportStar(__webpack_require__(183), exports);
 __exportStar(__webpack_require__(653), exports);
 __exportStar(__webpack_require__(320), exports);
-__exportStar(__webpack_require__(521), exports);
+__exportStar(__webpack_require__(769), exports);
 __exportStar(__webpack_require__(551), exports);
 __exportStar(__webpack_require__(673), exports);
 __exportStar(__webpack_require__(193), exports);
@@ -6421,7 +6397,66 @@ exports.paginateRest = paginateRest;
 /* 330 */,
 /* 331 */,
 /* 332 */,
-/* 333 */,
+/* 333 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+"use strict";
+
+
+var utils = __webpack_require__(35);
+
+// Headers whose duplicates are ignored by node
+// c.f. https://nodejs.org/api/http.html#http_message_headers
+var ignoreDuplicateOf = [
+  'age', 'authorization', 'content-length', 'content-type', 'etag',
+  'expires', 'from', 'host', 'if-modified-since', 'if-unmodified-since',
+  'last-modified', 'location', 'max-forwards', 'proxy-authorization',
+  'referer', 'retry-after', 'user-agent'
+];
+
+/**
+ * Parse headers into an object
+ *
+ * ```
+ * Date: Wed, 27 Aug 2014 08:58:49 GMT
+ * Content-Type: application/json
+ * Connection: keep-alive
+ * Transfer-Encoding: chunked
+ * ```
+ *
+ * @param {String} headers Headers needing to be parsed
+ * @returns {Object} Headers parsed into an object
+ */
+module.exports = function parseHeaders(headers) {
+  var parsed = {};
+  var key;
+  var val;
+  var i;
+
+  if (!headers) { return parsed; }
+
+  utils.forEach(headers.split('\n'), function parser(line) {
+    i = line.indexOf(':');
+    key = utils.trim(line.substr(0, i)).toLowerCase();
+    val = utils.trim(line.substr(i + 1));
+
+    if (key) {
+      if (parsed[key] && ignoreDuplicateOf.indexOf(key) >= 0) {
+        return;
+      }
+      if (key === 'set-cookie') {
+        parsed[key] = (parsed[key] ? parsed[key] : []).concat([val]);
+      } else {
+        parsed[key] = parsed[key] ? parsed[key] + ', ' + val : val;
+      }
+    }
+  });
+
+  return parsed;
+};
+
+
+/***/ }),
 /* 334 */,
 /* 335 */
 /***/ (function(__unusedmodule, exports) {
@@ -7395,8 +7430,8 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var isPlainObject = _interopDefault(__webpack_require__(874));
-var universalUserAgent = __webpack_require__(40);
+var isPlainObject = _interopDefault(__webpack_require__(696));
+var universalUserAgent = __webpack_require__(562);
 
 function lowercaseKeys(object) {
   if (!object) {
@@ -8280,7 +8315,127 @@ exports.Myself = Myself;
 /* 406 */,
 /* 407 */,
 /* 408 */,
-/* 409 */,
+/* 409 */
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.IssueFields = void 0;
+var IssueFields = /** @class */ (function () {
+    function IssueFields(client) {
+        this.client = client;
+    }
+    IssueFields.prototype.getFields = function (callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: '/rest/api/2/field',
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    IssueFields.prototype.createCustomField = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: '/rest/api/2/field',
+                    method: 'POST',
+                    data: {
+                        name: params.name,
+                        description: params.description,
+                        type: params.type,
+                        searcherKey: params.searcherKey,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    IssueFields.prototype.getFieldsPaginated = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                params = params || {};
+                request = {
+                    url: '/rest/api/2/field/search',
+                    method: 'GET',
+                    params: {
+                        startAt: params.startAt,
+                        maxResults: params.maxResults,
+                        type: params.type && params.type.join(','),
+                        id: params.id && params.id.join(','),
+                        query: params.query,
+                        orderBy: params.orderBy,
+                        expand: params.expand,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    IssueFields.prototype.getContextsForAField = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/field/" + params.fieldId + "/contexts",
+                    method: 'GET',
+                    params: {
+                        startAt: params.startAt,
+                        maxResults: params.maxResults,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    return IssueFields;
+}());
+exports.IssueFields = IssueFields;
+
+
+/***/ }),
 /* 410 */,
 /* 411 */
 /***/ (function(module, __unusedexports, __webpack_require__) {
@@ -8303,9 +8458,10 @@ module.exports = function normalizeHeaderName(headers, normalizedName) {
 /***/ }),
 /* 412 */,
 /* 413 */
-/***/ (function(module) {
+/***/ (function(module, __unusedexports, __webpack_require__) {
 
-module.exports = require("stream");
+module.exports = __webpack_require__(141);
+
 
 /***/ }),
 /* 414 */,
@@ -9344,7 +9500,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var Stream = _interopDefault(__webpack_require__(413));
+var Stream = _interopDefault(__webpack_require__(794));
 var http = _interopDefault(__webpack_require__(605));
 var Url = _interopDefault(__webpack_require__(835));
 var https = _interopDefault(__webpack_require__(211));
@@ -11138,7 +11294,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getOctokit = exports.context = void 0;
 const Context = __importStar(__webpack_require__(262));
-const utils_1 = __webpack_require__(902);
+const utils_1 = __webpack_require__(521);
 exports.context = new Context.Context();
 /**
  * Returns a hydrated octokit ready to use for GitHub Actions
@@ -12368,7 +12524,7 @@ exports.WorkflowTransitionRules = WorkflowTransitionRules;
 
 "use strict";
 
-const isStream = __webpack_require__(696);
+const isStream = __webpack_require__(664);
 const getStream = __webpack_require__(79);
 const mergeStream = __webpack_require__(778);
 
@@ -12472,136 +12628,63 @@ module.exports = {
 /* 519 */,
 /* 520 */,
 /* 521 */
-/***/ (function(__unusedmodule, exports) {
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
 
 "use strict";
 
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Webhooks = void 0;
-var Webhooks = /** @class */ (function () {
-    function Webhooks(client) {
-        this.client = client;
+exports.getOctokitOptions = exports.GitHub = exports.context = void 0;
+const Context = __importStar(__webpack_require__(262));
+const Utils = __importStar(__webpack_require__(127));
+// octokit + plugins
+const core_1 = __webpack_require__(448);
+const plugin_rest_endpoint_methods_1 = __webpack_require__(559);
+const plugin_paginate_rest_1 = __webpack_require__(322);
+exports.context = new Context.Context();
+const baseUrl = Utils.getApiBaseUrl();
+const defaults = {
+    baseUrl,
+    request: {
+        agent: Utils.getProxyAgent(baseUrl)
     }
-    Webhooks.prototype.getDynamicWebhooksForApp = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                params = params || {};
-                request = {
-                    url: '/rest/api/2/webhook',
-                    method: 'GET',
-                    params: {
-                        startAt: params.startAt,
-                        maxResults: params.maxResults,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Webhooks.prototype.registerDynamicWebhooks = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: '/rest/api/2/webhook',
-                    method: 'POST',
-                    data: {
-                        webhooks: params.webhooks,
-                        url: params.url,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Webhooks.prototype.deleteWebhooksById = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: '/rest/api/2/webhook',
-                    method: 'DELETE',
-                    data: {
-                        webhookIds: params.webhookIds,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Webhooks.prototype.getFailedWebhooks = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                params = params || {};
-                request = {
-                    url: '/rest/api/2/webhook/failed',
-                    method: 'GET',
-                    params: {
-                        maxResults: params.maxResults,
-                        after: params.after,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Webhooks.prototype.extendWebhookLife = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: '/rest/api/2/webhook/refresh',
-                    method: 'PUT',
-                    data: {
-                        webhookIds: params.webhookIds,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    return Webhooks;
-}());
-exports.Webhooks = Webhooks;
-
+};
+exports.GitHub = core_1.Octokit.plugin(plugin_rest_endpoint_methods_1.restEndpointMethods, plugin_paginate_rest_1.paginateRest).defaults(defaults);
+/**
+ * Convience function to correctly format Octokit Options to pass into the constructor.
+ *
+ * @param     token    the repo PAT or GITHUB_TOKEN
+ * @param     options  other options to set
+ */
+function getOctokitOptions(token, options) {
+    const opts = Object.assign({}, options || {}); // Shallow clone - don't mutate the object provided by the caller
+    // Auth
+    const auth = Utils.getAuthString(token, opts);
+    if (auth) {
+        opts.auth = auth;
+    }
+    return opts;
+}
+exports.getOctokitOptions = getOctokitOptions;
+//# sourceMappingURL=utils.js.map
 
 /***/ }),
 /* 522 */,
@@ -13411,7 +13494,7 @@ class HttpClient {
         if (useProxy) {
             // If using proxy, need tunnel
             if (!tunnel) {
-                tunnel = __webpack_require__(856);
+                tunnel = __webpack_require__(413);
             }
             const agentOptions = {
                 maxSockets: maxSockets,
@@ -13704,7 +13787,7 @@ var url = __webpack_require__(835);
 var http = __webpack_require__(605);
 var https = __webpack_require__(211);
 var assert = __webpack_require__(357);
-var Writable = __webpack_require__(413).Writable;
+var Writable = __webpack_require__(794).Writable;
 var debug = __webpack_require__(72)("follow-redirects");
 
 // RFC7231§4.2.1: Of the request methods defined by this specification,
@@ -14234,4072 +14317,6 @@ exports.IssueTypeProperties = IssueTypeProperties;
 /***/ }),
 /* 558 */,
 /* 559 */
-/***/ (function(__unusedmodule, exports) {
-
-"use strict";
-
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.IssueCustomFieldOptionsApps = void 0;
-var IssueCustomFieldOptionsApps = /** @class */ (function () {
-    function IssueCustomFieldOptionsApps(client) {
-        this.client = client;
-    }
-    IssueCustomFieldOptionsApps.prototype.getAllIssueFieldOptions = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/field/" + params.fieldKey + "/option",
-                    method: 'GET',
-                    params: {
-                        startAt: params.startAt,
-                        maxResults: params.maxResults,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    IssueCustomFieldOptionsApps.prototype.createIssueFieldOption = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/field/" + params.fieldKey + "/option",
-                    method: 'POST',
-                    data: __assign(__assign({}, params), { fieldKey: undefined }),
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    IssueCustomFieldOptionsApps.prototype.getSelectableIssueFieldOptions = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/field/" + params.fieldKey + "/option/suggestions/edit",
-                    method: 'GET',
-                    params: {
-                        startAt: params.startAt,
-                        maxResults: params.maxResults,
-                        projectId: params.projectId,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    IssueCustomFieldOptionsApps.prototype.getVisibleIssueFieldOptions = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/field/" + params.fieldKey + "/option/suggestions/search",
-                    method: 'GET',
-                    params: {
-                        startAt: params.startAt,
-                        maxResults: params.maxResults,
-                        projectId: params.projectId,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    IssueCustomFieldOptionsApps.prototype.getIssueFieldOption = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/field/" + params.fieldKey + "/option/" + params.optionId,
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    IssueCustomFieldOptionsApps.prototype.updateIssueFieldOption = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/field/" + params.fieldKey + "/option/" + params.optionId,
-                    method: 'PUT',
-                    data: {
-                        id: params.id,
-                        value: params.value,
-                        properties: params.properties,
-                        config: params.config,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    IssueCustomFieldOptionsApps.prototype.deleteIssueFieldOption = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/field/" + params.fieldKey + "/option/" + params.optionId,
-                    method: 'DELETE',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    IssueCustomFieldOptionsApps.prototype.replaceIssueFieldOption = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/field/" + params.fieldKey + "/option/" + params.optionId + "/issue",
-                    method: 'DELETE',
-                    params: {
-                        replaceWith: params.replaceWith,
-                        jql: params.jql,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    return IssueCustomFieldOptionsApps;
-}());
-exports.IssueCustomFieldOptionsApps = IssueCustomFieldOptionsApps;
-
-
-/***/ }),
-/* 560 */
-/***/ (function(__unusedmodule, exports) {
-
-"use strict";
-Object.defineProperty(exports,"__esModule",{value:true});exports.SIGNALS=void 0;
-
-const SIGNALS=[
-{
-name:"SIGHUP",
-number:1,
-action:"terminate",
-description:"Terminal closed",
-standard:"posix"},
-
-{
-name:"SIGINT",
-number:2,
-action:"terminate",
-description:"User interruption with CTRL-C",
-standard:"ansi"},
-
-{
-name:"SIGQUIT",
-number:3,
-action:"core",
-description:"User interruption with CTRL-\\",
-standard:"posix"},
-
-{
-name:"SIGILL",
-number:4,
-action:"core",
-description:"Invalid machine instruction",
-standard:"ansi"},
-
-{
-name:"SIGTRAP",
-number:5,
-action:"core",
-description:"Debugger breakpoint",
-standard:"posix"},
-
-{
-name:"SIGABRT",
-number:6,
-action:"core",
-description:"Aborted",
-standard:"ansi"},
-
-{
-name:"SIGIOT",
-number:6,
-action:"core",
-description:"Aborted",
-standard:"bsd"},
-
-{
-name:"SIGBUS",
-number:7,
-action:"core",
-description:
-"Bus error due to misaligned, non-existing address or paging error",
-standard:"bsd"},
-
-{
-name:"SIGEMT",
-number:7,
-action:"terminate",
-description:"Command should be emulated but is not implemented",
-standard:"other"},
-
-{
-name:"SIGFPE",
-number:8,
-action:"core",
-description:"Floating point arithmetic error",
-standard:"ansi"},
-
-{
-name:"SIGKILL",
-number:9,
-action:"terminate",
-description:"Forced termination",
-standard:"posix",
-forced:true},
-
-{
-name:"SIGUSR1",
-number:10,
-action:"terminate",
-description:"Application-specific signal",
-standard:"posix"},
-
-{
-name:"SIGSEGV",
-number:11,
-action:"core",
-description:"Segmentation fault",
-standard:"ansi"},
-
-{
-name:"SIGUSR2",
-number:12,
-action:"terminate",
-description:"Application-specific signal",
-standard:"posix"},
-
-{
-name:"SIGPIPE",
-number:13,
-action:"terminate",
-description:"Broken pipe or socket",
-standard:"posix"},
-
-{
-name:"SIGALRM",
-number:14,
-action:"terminate",
-description:"Timeout or timer",
-standard:"posix"},
-
-{
-name:"SIGTERM",
-number:15,
-action:"terminate",
-description:"Termination",
-standard:"ansi"},
-
-{
-name:"SIGSTKFLT",
-number:16,
-action:"terminate",
-description:"Stack is empty or overflowed",
-standard:"other"},
-
-{
-name:"SIGCHLD",
-number:17,
-action:"ignore",
-description:"Child process terminated, paused or unpaused",
-standard:"posix"},
-
-{
-name:"SIGCLD",
-number:17,
-action:"ignore",
-description:"Child process terminated, paused or unpaused",
-standard:"other"},
-
-{
-name:"SIGCONT",
-number:18,
-action:"unpause",
-description:"Unpaused",
-standard:"posix",
-forced:true},
-
-{
-name:"SIGSTOP",
-number:19,
-action:"pause",
-description:"Paused",
-standard:"posix",
-forced:true},
-
-{
-name:"SIGTSTP",
-number:20,
-action:"pause",
-description:"Paused using CTRL-Z or \"suspend\"",
-standard:"posix"},
-
-{
-name:"SIGTTIN",
-number:21,
-action:"pause",
-description:"Background process cannot read terminal input",
-standard:"posix"},
-
-{
-name:"SIGBREAK",
-number:21,
-action:"terminate",
-description:"User interruption with CTRL-BREAK",
-standard:"other"},
-
-{
-name:"SIGTTOU",
-number:22,
-action:"pause",
-description:"Background process cannot write to terminal output",
-standard:"posix"},
-
-{
-name:"SIGURG",
-number:23,
-action:"ignore",
-description:"Socket received out-of-band data",
-standard:"bsd"},
-
-{
-name:"SIGXCPU",
-number:24,
-action:"core",
-description:"Process timed out",
-standard:"bsd"},
-
-{
-name:"SIGXFSZ",
-number:25,
-action:"core",
-description:"File too big",
-standard:"bsd"},
-
-{
-name:"SIGVTALRM",
-number:26,
-action:"terminate",
-description:"Timeout or timer",
-standard:"bsd"},
-
-{
-name:"SIGPROF",
-number:27,
-action:"terminate",
-description:"Timeout or timer",
-standard:"bsd"},
-
-{
-name:"SIGWINCH",
-number:28,
-action:"ignore",
-description:"Terminal window size changed",
-standard:"bsd"},
-
-{
-name:"SIGIO",
-number:29,
-action:"terminate",
-description:"I/O is available",
-standard:"other"},
-
-{
-name:"SIGPOLL",
-number:29,
-action:"terminate",
-description:"Watched event",
-standard:"other"},
-
-{
-name:"SIGINFO",
-number:29,
-action:"ignore",
-description:"Request for process information",
-standard:"other"},
-
-{
-name:"SIGPWR",
-number:30,
-action:"terminate",
-description:"Device running out of power",
-standard:"systemv"},
-
-{
-name:"SIGSYS",
-number:31,
-action:"core",
-description:"Invalid system call",
-standard:"other"},
-
-{
-name:"SIGUNUSED",
-number:31,
-action:"terminate",
-description:"Invalid system call",
-standard:"other"}];exports.SIGNALS=SIGNALS;
-//# sourceMappingURL=core.js.map
-
-/***/ }),
-/* 561 */,
-/* 562 */
-/***/ (function(__unusedmodule, exports) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.IssueFields = void 0;
-var IssueFields = /** @class */ (function () {
-    function IssueFields(client) {
-        this.client = client;
-    }
-    IssueFields.prototype.getFields = function (callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: '/rest/api/2/field',
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    IssueFields.prototype.createCustomField = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: '/rest/api/2/field',
-                    method: 'POST',
-                    data: {
-                        name: params.name,
-                        description: params.description,
-                        type: params.type,
-                        searcherKey: params.searcherKey,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    IssueFields.prototype.getFieldsPaginated = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                params = params || {};
-                request = {
-                    url: '/rest/api/2/field/search',
-                    method: 'GET',
-                    params: {
-                        startAt: params.startAt,
-                        maxResults: params.maxResults,
-                        type: params.type && params.type.join(','),
-                        id: params.id && params.id.join(','),
-                        query: params.query,
-                        orderBy: params.orderBy,
-                        expand: params.expand,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    IssueFields.prototype.getContextsForAField = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/field/" + params.fieldId + "/contexts",
-                    method: 'GET',
-                    params: {
-                        startAt: params.startAt,
-                        maxResults: params.maxResults,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    return IssueFields;
-}());
-exports.IssueFields = IssueFields;
-
-
-/***/ }),
-/* 563 */,
-/* 564 */
-/***/ (function(module, __unusedexports, __webpack_require__) {
-
-"use strict";
-
-
-var createError = __webpack_require__(26);
-
-/**
- * Resolve or reject a Promise based on response status.
- *
- * @param {Function} resolve A function that resolves the promise.
- * @param {Function} reject A function that rejects the promise.
- * @param {object} response The response.
- */
-module.exports = function settle(resolve, reject, response) {
-  var validateStatus = response.config.validateStatus;
-  if (!validateStatus || validateStatus(response.status)) {
-    resolve(response);
-  } else {
-    reject(createError(
-      'Request failed with status code ' + response.status,
-      response.config,
-      null,
-      response.request,
-      response
-    ));
-  }
-};
-
-
-/***/ }),
-/* 565 */
-/***/ (function(module) {
-
-"use strict";
-
-
-const pathKey = (options = {}) => {
-	const environment = options.env || process.env;
-	const platform = options.platform || process.platform;
-
-	if (platform !== 'win32') {
-		return 'PATH';
-	}
-
-	return Object.keys(environment).reverse().find(key => key.toUpperCase() === 'PATH') || 'Path';
-};
-
-module.exports = pathKey;
-// TODO: Remove this for the next major release
-module.exports.default = pathKey;
-
-
-/***/ }),
-/* 566 */,
-/* 567 */
-/***/ (function(module, __unusedexports, __webpack_require__) {
-
-"use strict";
-
-const os = __webpack_require__(87);
-const onExit = __webpack_require__(497);
-
-const DEFAULT_FORCE_KILL_TIMEOUT = 1000 * 5;
-
-// Monkey-patches `childProcess.kill()` to add `forceKillAfterTimeout` behavior
-const spawnedKill = (kill, signal = 'SIGTERM', options = {}) => {
-	const killResult = kill(signal);
-	setKillTimeout(kill, signal, options, killResult);
-	return killResult;
-};
-
-const setKillTimeout = (kill, signal, options, killResult) => {
-	if (!shouldForceKill(signal, options, killResult)) {
-		return;
-	}
-
-	const timeout = getForceKillAfterTimeout(options);
-	const t = setTimeout(() => {
-		kill('SIGKILL');
-	}, timeout);
-
-	// Guarded because there's no `.unref()` when `execa` is used in the renderer
-	// process in Electron. This cannot be tested since we don't run tests in
-	// Electron.
-	// istanbul ignore else
-	if (t.unref) {
-		t.unref();
-	}
-};
-
-const shouldForceKill = (signal, {forceKillAfterTimeout}, killResult) => {
-	return isSigterm(signal) && forceKillAfterTimeout !== false && killResult;
-};
-
-const isSigterm = signal => {
-	return signal === os.constants.signals.SIGTERM ||
-		(typeof signal === 'string' && signal.toUpperCase() === 'SIGTERM');
-};
-
-const getForceKillAfterTimeout = ({forceKillAfterTimeout = true}) => {
-	if (forceKillAfterTimeout === true) {
-		return DEFAULT_FORCE_KILL_TIMEOUT;
-	}
-
-	if (!Number.isFinite(forceKillAfterTimeout) || forceKillAfterTimeout < 0) {
-		throw new TypeError(`Expected the \`forceKillAfterTimeout\` option to be a non-negative integer, got \`${forceKillAfterTimeout}\` (${typeof forceKillAfterTimeout})`);
-	}
-
-	return forceKillAfterTimeout;
-};
-
-// `childProcess.cancel()`
-const spawnedCancel = (spawned, context) => {
-	const killResult = spawned.kill();
-
-	if (killResult) {
-		context.isCanceled = true;
-	}
-};
-
-const timeoutKill = (spawned, signal, reject) => {
-	spawned.kill(signal);
-	reject(Object.assign(new Error('Timed out'), {timedOut: true, signal}));
-};
-
-// `timeout` option handling
-const setupTimeout = (spawned, {timeout, killSignal = 'SIGTERM'}, spawnedPromise) => {
-	if (timeout === 0 || timeout === undefined) {
-		return spawnedPromise;
-	}
-
-	if (!Number.isFinite(timeout) || timeout < 0) {
-		throw new TypeError(`Expected the \`timeout\` option to be a non-negative integer, got \`${timeout}\` (${typeof timeout})`);
-	}
-
-	let timeoutId;
-	const timeoutPromise = new Promise((resolve, reject) => {
-		timeoutId = setTimeout(() => {
-			timeoutKill(spawned, killSignal, reject);
-		}, timeout);
-	});
-
-	const safeSpawnedPromise = spawnedPromise.finally(() => {
-		clearTimeout(timeoutId);
-	});
-
-	return Promise.race([timeoutPromise, safeSpawnedPromise]);
-};
-
-// `cleanup` option handling
-const setExitHandler = async (spawned, {cleanup, detached}, timedPromise) => {
-	if (!cleanup || detached) {
-		return timedPromise;
-	}
-
-	const removeExitHandler = onExit(() => {
-		spawned.kill();
-	});
-
-	return timedPromise.finally(() => {
-		removeExitHandler();
-	});
-};
-
-module.exports = {
-	spawnedKill,
-	spawnedCancel,
-	setupTimeout,
-	setExitHandler
-};
-
-
-/***/ }),
-/* 568 */,
-/* 569 */,
-/* 570 */
-/***/ (function(__unusedmodule, exports) {
-
-"use strict";
-
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Sprint = void 0;
-var Sprint = /** @class */ (function () {
-    function Sprint(client) {
-        this.client = client;
-    }
-    Sprint.prototype.createSprint = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                params = params || {};
-                request = {
-                    url: '/rest/agile/1.0/sprint',
-                    method: 'POST',
-                    data: __assign({}, params),
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Sprint.prototype.getSprint = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/agile/1.0/sprint/" + params.sprintId,
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Sprint.prototype.updateSprint = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/agile/1.0/sprint/" + params.sprintId,
-                    method: 'PUT',
-                    data: __assign(__assign({}, params), { sprintId: undefined }),
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Sprint.prototype.partiallyUpdateSprint = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/agile/1.0/sprint/" + params.sprintId,
-                    method: 'POST',
-                    data: __assign(__assign({}, params), { sprintId: undefined }),
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Sprint.prototype.deleteSprint = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/agile/1.0/sprint/" + params.sprintId,
-                    method: 'DELETE',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Sprint.prototype.getIssuesForSprint = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/agile/1.0/sprint/" + params.sprintId + "/issue",
-                    method: 'GET',
-                    params: {
-                        startAt: params.startAt,
-                        maxResults: params.maxResults,
-                        jql: params.jql,
-                        validateQuery: params.validateQuery,
-                        fields: params.fields && params.fields.join(','),
-                        expand: params.expand,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Sprint.prototype.moveIssuesToSprintAndRank = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/agile/1.0/sprint/" + params.sprintId + "/issue",
-                    method: 'POST',
-                    data: __assign(__assign({}, params), { sprintId: undefined }),
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Sprint.prototype.getPropertiesKeys = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/agile/1.0/sprint/" + params.sprintId + "/properties",
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Sprint.prototype.getProperty = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/agile/1.0/sprint/" + params.sprintId + "/properties/" + params.propertyKey,
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Sprint.prototype.setProperty = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/agile/1.0/sprint/" + params.sprintId + "/properties/" + params.propertyKey,
-                    method: 'PUT',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Sprint.prototype.deleteProperty = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/agile/1.0/sprint/" + params.sprintId + "/properties/" + params.propertyKey,
-                    method: 'DELETE',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Sprint.prototype.swapSprint = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/agile/1.0/sprint/" + params.sprintId + "/swap",
-                    method: 'POST',
-                    data: __assign(__assign({}, params), { sprintId: undefined }),
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    return Sprint;
-}());
-exports.Sprint = Sprint;
-
-
-/***/ }),
-/* 571 */,
-/* 572 */,
-/* 573 */,
-/* 574 */,
-/* 575 */,
-/* 576 */,
-/* 577 */,
-/* 578 */,
-/* 579 */,
-/* 580 */,
-/* 581 */,
-/* 582 */,
-/* 583 */,
-/* 584 */,
-/* 585 */,
-/* 586 */,
-/* 587 */,
-/* 588 */
-/***/ (function(module) {
-
-"use strict";
-
-
-module.exports = input => {
-	const LF = typeof input === 'string' ? '\n' : '\n'.charCodeAt();
-	const CR = typeof input === 'string' ? '\r' : '\r'.charCodeAt();
-
-	if (input[input.length - 1] === LF) {
-		input = input.slice(0, input.length - 1);
-	}
-
-	if (input[input.length - 1] === CR) {
-		input = input.slice(0, input.length - 1);
-	}
-
-	return input;
-};
-
-
-/***/ }),
-/* 589 */
-/***/ (function(module, __unusedexports, __webpack_require__) {
-
-"use strict";
-
-
-var utils = __webpack_require__(35);
-
-/**
- * Transform the data for a request or a response
- *
- * @param {Object|String} data The data to be transformed
- * @param {Array} headers The headers for the request or response
- * @param {Array|Function} fns A single function or Array of functions
- * @returns {*} The resulting transformed data
- */
-module.exports = function transformData(data, headers, fns) {
-  /*eslint no-param-reassign:0*/
-  utils.forEach(fns, function transform(fn) {
-    data = fn(data, headers);
-  });
-
-  return data;
-};
-
-
-/***/ }),
-/* 590 */
-/***/ (function(module) {
-
-"use strict";
-
-
-/**
- * Determines whether the specified URL is absolute
- *
- * @param {string} url The URL to test
- * @returns {boolean} True if the specified URL is absolute, otherwise false
- */
-module.exports = function isAbsoluteURL(url) {
-  // A URL is considered absolute if it begins with "<scheme>://" or "//" (protocol-relative URL).
-  // RFC 3986 defines scheme name as a sequence of characters beginning with a letter and followed
-  // by any combination of letters, digits, plus, period, or hyphen.
-  return /^([a-z][a-z\d\+\-\.]*:)?\/\//i.test(url);
-};
-
-
-/***/ }),
-/* 591 */,
-/* 592 */,
-/* 593 */,
-/* 594 */,
-/* 595 */,
-/* 596 */,
-/* 597 */
-/***/ (function(__unusedmodule, exports) {
-
-"use strict";
-
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.IssueTypes = void 0;
-var IssueTypes = /** @class */ (function () {
-    function IssueTypes(client) {
-        this.client = client;
-    }
-    IssueTypes.prototype.getAllIssueTypesForUser = function (callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: '/rest/api/2/issuetype',
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    IssueTypes.prototype.createIssueType = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: '/rest/api/2/issuetype',
-                    method: 'POST',
-                    data: {
-                        name: params.name,
-                        description: params.description,
-                        type: params.type,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    IssueTypes.prototype.getIssueType = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/issuetype/" + params.id,
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    IssueTypes.prototype.updateIssueType = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/issuetype/" + params.id,
-                    method: 'PUT',
-                    data: {
-                        name: params.name,
-                        description: params.description,
-                        avatarId: params.avatarId,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    IssueTypes.prototype.deleteIssueType = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/issuetype/" + params.id,
-                    method: 'DELETE',
-                    params: {
-                        alternativeIssueTypeId: params.alternativeIssueTypeId,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    IssueTypes.prototype.getAlternativeIssueTypes = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/issuetype/" + params.id + "/alternatives",
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    IssueTypes.prototype.loadIssueTypeAvatar = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/issuetype/" + params.id + "/avatar2",
-                    method: 'POST',
-                    params: {
-                        x: params.x,
-                        y: params.y,
-                        size: params.size,
-                    },
-                    data: __assign(__assign({}, params), { id: undefined, x: undefined, y: undefined, size: undefined }),
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    return IssueTypes;
-}());
-exports.IssueTypes = IssueTypes;
-
-
-/***/ }),
-/* 598 */,
-/* 599 */,
-/* 600 */,
-/* 601 */,
-/* 602 */,
-/* 603 */,
-/* 604 */,
-/* 605 */
-/***/ (function(module) {
-
-module.exports = require("http");
-
-/***/ }),
-/* 606 */,
-/* 607 */
-/***/ (function(__unusedmodule, exports) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ProjectRoles = void 0;
-var ProjectRoles = /** @class */ (function () {
-    function ProjectRoles(client) {
-        this.client = client;
-    }
-    ProjectRoles.prototype.getProjectRolesForProject = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/project/" + params.projectIdOrKey + "/role",
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    ProjectRoles.prototype.getProjectRoleForProject = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/project/" + params.projectIdOrKey + "/role/" + params.id,
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    ProjectRoles.prototype.getProjectRoleDetails = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/project/" + params.projectIdOrKey + "/roledetails",
-                    method: 'GET',
-                    params: {
-                        currentMember: params.currentMember,
-                        excludeConnectAddons: params.excludeConnectAddons,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    ProjectRoles.prototype.getAllProjectRoles = function (callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: '/rest/api/2/role',
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    ProjectRoles.prototype.createProjectRole = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                params = params || {};
-                request = {
-                    url: '/rest/api/2/role',
-                    method: 'POST',
-                    data: {
-                        name: params.name,
-                        description: params.description,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    ProjectRoles.prototype.getProjectRoleById = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/role/" + params.id,
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    ProjectRoles.prototype.fullyUpdateProjectRole = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/role/" + params.id,
-                    method: 'PUT',
-                    data: {
-                        name: params.name,
-                        description: params.description,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    ProjectRoles.prototype.partialUpdateProjectRole = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/role/" + params.id,
-                    method: 'POST',
-                    data: {
-                        name: params.name,
-                        description: params.description,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    ProjectRoles.prototype.deleteProjectRole = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/role/" + params.id,
-                    method: 'DELETE',
-                    params: {
-                        swap: params.swap,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    return ProjectRoles;
-}());
-exports.ProjectRoles = ProjectRoles;
-
-
-/***/ }),
-/* 608 */,
-/* 609 */,
-/* 610 */,
-/* 611 */,
-/* 612 */,
-/* 613 */,
-/* 614 */
-/***/ (function(module) {
-
-module.exports = require("events");
-
-/***/ }),
-/* 615 */,
-/* 616 */,
-/* 617 */,
-/* 618 */,
-/* 619 */,
-/* 620 */,
-/* 621 */,
-/* 622 */
-/***/ (function(module) {
-
-module.exports = require("path");
-
-/***/ }),
-/* 623 */,
-/* 624 */
-/***/ (function(__unusedmodule, exports) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ProjectComponents = void 0;
-var ProjectComponents = /** @class */ (function () {
-    function ProjectComponents(client) {
-        this.client = client;
-    }
-    ProjectComponents.prototype.createComponent = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                params = params || {};
-                request = {
-                    url: '/rest/api/2/component',
-                    method: 'POST',
-                    data: {
-                        self: params.self,
-                        id: params.id,
-                        name: params.name,
-                        description: params.description,
-                        lead: params.lead,
-                        leadUserName: params.leadUserName,
-                        leadAccountId: params.leadAccountId,
-                        assigneeType: params.assigneeType,
-                        assignee: params.assignee,
-                        realAssigneeType: params.realAssigneeType,
-                        realAssignee: params.realAssignee,
-                        isAssigneeTypeValid: params.isAssigneeTypeValid,
-                        project: params.project,
-                        projectId: params.projectId,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    ProjectComponents.prototype.getComponent = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/component/" + params.id,
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    ProjectComponents.prototype.updateComponent = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/component/" + params.id,
-                    method: 'PUT',
-                    data: {
-                        self: params.self,
-                        id: params.id,
-                        name: params.name,
-                        description: params.description,
-                        lead: params.lead,
-                        leadUserName: params.leadUserName,
-                        leadAccountId: params.leadAccountId,
-                        assigneeType: params.assigneeType,
-                        assignee: params.assignee,
-                        realAssigneeType: params.realAssigneeType,
-                        realAssignee: params.realAssignee,
-                        isAssigneeTypeValid: params.isAssigneeTypeValid,
-                        project: params.project,
-                        projectId: params.projectId,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    ProjectComponents.prototype.deleteComponent = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/component/" + params.id,
-                    method: 'DELETE',
-                    params: {
-                        moveIssuesTo: params.moveIssuesTo,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    ProjectComponents.prototype.getComponentIssuesCount = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/component/" + params.id + "/relatedIssueCounts",
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    ProjectComponents.prototype.getProjectComponentsPaginated = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/project/" + params.projectIdOrKey + "/component",
-                    method: 'GET',
-                    params: {
-                        startAt: params.startAt,
-                        maxResults: params.maxResults,
-                        orderBy: params.orderBy,
-                        query: params.query,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    ProjectComponents.prototype.getProjectComponents = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/project/" + params.projectIdOrKey + "/components",
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    return ProjectComponents;
-}());
-exports.ProjectComponents = ProjectComponents;
-
-
-/***/ }),
-/* 625 */
-/***/ (function(module, __unusedexports, __webpack_require__) {
-
-"use strict";
-
-const {PassThrough: PassThroughStream} = __webpack_require__(413);
-
-module.exports = options => {
-	options = {...options};
-
-	const {array} = options;
-	let {encoding} = options;
-	const isBuffer = encoding === 'buffer';
-	let objectMode = false;
-
-	if (array) {
-		objectMode = !(encoding || isBuffer);
-	} else {
-		encoding = encoding || 'utf8';
-	}
-
-	if (isBuffer) {
-		encoding = null;
-	}
-
-	const stream = new PassThroughStream({objectMode});
-
-	if (encoding) {
-		stream.setEncoding(encoding);
-	}
-
-	let length = 0;
-	const chunks = [];
-
-	stream.on('data', chunk => {
-		chunks.push(chunk);
-
-		if (objectMode) {
-			length = chunks.length;
-		} else {
-			length += chunk.length;
-		}
-	});
-
-	stream.getBufferedValue = () => {
-		if (array) {
-			return chunks;
-		}
-
-		return isBuffer ? Buffer.concat(chunks, length) : chunks.join('');
-	};
-
-	stream.getBufferedLength = () => length;
-
-	return stream;
-};
-
-
-/***/ }),
-/* 626 */,
-/* 627 */,
-/* 628 */,
-/* 629 */,
-/* 630 */,
-/* 631 */
-/***/ (function(module, __unusedexports, __webpack_require__) {
-
-"use strict";
-
-
-var utils = __webpack_require__(35);
-
-// Headers whose duplicates are ignored by node
-// c.f. https://nodejs.org/api/http.html#http_message_headers
-var ignoreDuplicateOf = [
-  'age', 'authorization', 'content-length', 'content-type', 'etag',
-  'expires', 'from', 'host', 'if-modified-since', 'if-unmodified-since',
-  'last-modified', 'location', 'max-forwards', 'proxy-authorization',
-  'referer', 'retry-after', 'user-agent'
-];
-
-/**
- * Parse headers into an object
- *
- * ```
- * Date: Wed, 27 Aug 2014 08:58:49 GMT
- * Content-Type: application/json
- * Connection: keep-alive
- * Transfer-Encoding: chunked
- * ```
- *
- * @param {String} headers Headers needing to be parsed
- * @returns {Object} Headers parsed into an object
- */
-module.exports = function parseHeaders(headers) {
-  var parsed = {};
-  var key;
-  var val;
-  var i;
-
-  if (!headers) { return parsed; }
-
-  utils.forEach(headers.split('\n'), function parser(line) {
-    i = line.indexOf(':');
-    key = utils.trim(line.substr(0, i)).toLowerCase();
-    val = utils.trim(line.substr(i + 1));
-
-    if (key) {
-      if (parsed[key] && ignoreDuplicateOf.indexOf(key) >= 0) {
-        return;
-      }
-      if (key === 'set-cookie') {
-        parsed[key] = (parsed[key] ? parsed[key] : []).concat([val]);
-      } else {
-        parsed[key] = parsed[key] ? parsed[key] + ', ' + val : val;
-      }
-    }
-  });
-
-  return parsed;
-};
-
-
-/***/ }),
-/* 632 */
-/***/ (function(module) {
-
-/**
- * Helpers.
- */
-
-var s = 1000;
-var m = s * 60;
-var h = m * 60;
-var d = h * 24;
-var y = d * 365.25;
-
-/**
- * Parse or format the given `val`.
- *
- * Options:
- *
- *  - `long` verbose formatting [false]
- *
- * @param {String|Number} val
- * @param {Object} [options]
- * @throws {Error} throw an error if val is not a non-empty string or a number
- * @return {String|Number}
- * @api public
- */
-
-module.exports = function(val, options) {
-  options = options || {};
-  var type = typeof val;
-  if (type === 'string' && val.length > 0) {
-    return parse(val);
-  } else if (type === 'number' && isNaN(val) === false) {
-    return options.long ? fmtLong(val) : fmtShort(val);
-  }
-  throw new Error(
-    'val is not a non-empty string or a valid number. val=' +
-      JSON.stringify(val)
-  );
-};
-
-/**
- * Parse the given `str` and return milliseconds.
- *
- * @param {String} str
- * @return {Number}
- * @api private
- */
-
-function parse(str) {
-  str = String(str);
-  if (str.length > 100) {
-    return;
-  }
-  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(
-    str
-  );
-  if (!match) {
-    return;
-  }
-  var n = parseFloat(match[1]);
-  var type = (match[2] || 'ms').toLowerCase();
-  switch (type) {
-    case 'years':
-    case 'year':
-    case 'yrs':
-    case 'yr':
-    case 'y':
-      return n * y;
-    case 'days':
-    case 'day':
-    case 'd':
-      return n * d;
-    case 'hours':
-    case 'hour':
-    case 'hrs':
-    case 'hr':
-    case 'h':
-      return n * h;
-    case 'minutes':
-    case 'minute':
-    case 'mins':
-    case 'min':
-    case 'm':
-      return n * m;
-    case 'seconds':
-    case 'second':
-    case 'secs':
-    case 'sec':
-    case 's':
-      return n * s;
-    case 'milliseconds':
-    case 'millisecond':
-    case 'msecs':
-    case 'msec':
-    case 'ms':
-      return n;
-    default:
-      return undefined;
-  }
-}
-
-/**
- * Short format for `ms`.
- *
- * @param {Number} ms
- * @return {String}
- * @api private
- */
-
-function fmtShort(ms) {
-  if (ms >= d) {
-    return Math.round(ms / d) + 'd';
-  }
-  if (ms >= h) {
-    return Math.round(ms / h) + 'h';
-  }
-  if (ms >= m) {
-    return Math.round(ms / m) + 'm';
-  }
-  if (ms >= s) {
-    return Math.round(ms / s) + 's';
-  }
-  return ms + 'ms';
-}
-
-/**
- * Long format for `ms`.
- *
- * @param {Number} ms
- * @return {String}
- * @api private
- */
-
-function fmtLong(ms) {
-  return plural(ms, d, 'day') ||
-    plural(ms, h, 'hour') ||
-    plural(ms, m, 'minute') ||
-    plural(ms, s, 'second') ||
-    ms + ' ms';
-}
-
-/**
- * Pluralization helper.
- */
-
-function plural(ms, n, name) {
-  if (ms < n) {
-    return;
-  }
-  if (ms < n * 1.5) {
-    return Math.floor(ms / n) + ' ' + name;
-  }
-  return Math.ceil(ms / n) + ' ' + name + 's';
-}
-
-
-/***/ }),
-/* 633 */,
-/* 634 */,
-/* 635 */,
-/* 636 */
-/***/ (function(__unusedmodule, exports) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.IssueResolutions = void 0;
-var IssueResolutions = /** @class */ (function () {
-    function IssueResolutions(client) {
-        this.client = client;
-    }
-    IssueResolutions.prototype.getResolutions = function (callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: '/rest/api/2/resolution',
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    IssueResolutions.prototype.getResolution = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/resolution/" + params.id,
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    return IssueResolutions;
-}());
-exports.IssueResolutions = IssueResolutions;
-
-
-/***/ }),
-/* 637 */,
-/* 638 */,
-/* 639 */,
-/* 640 */,
-/* 641 */,
-/* 642 */,
-/* 643 */,
-/* 644 */,
-/* 645 */,
-/* 646 */,
-/* 647 */,
-/* 648 */,
-/* 649 */,
-/* 650 */,
-/* 651 */,
-/* 652 */
-/***/ (function(__unusedmodule, exports, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(exports,"__esModule",{value:true});exports.getSignals=void 0;var _os=__webpack_require__(87);
-
-var _core=__webpack_require__(560);
-var _realtime=__webpack_require__(260);
-
-
-
-const getSignals=function(){
-const realtimeSignals=(0,_realtime.getRealtimeSignals)();
-const signals=[..._core.SIGNALS,...realtimeSignals].map(normalizeSignal);
-return signals;
-};exports.getSignals=getSignals;
-
-
-
-
-
-
-
-const normalizeSignal=function({
-name,
-number:defaultNumber,
-description,
-action,
-forced=false,
-standard})
-{
-const{
-signals:{[name]:constantSignal}}=
-_os.constants;
-const supported=constantSignal!==undefined;
-const number=supported?constantSignal:defaultNumber;
-return{name,number,description,supported,action,forced,standard};
-};
-//# sourceMappingURL=signals.js.map
-
-/***/ }),
-/* 653 */
-/***/ (function(__unusedmodule, exports) {
-
-"use strict";
-
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Users = void 0;
-var Users = /** @class */ (function () {
-    function Users(client) {
-        this.client = client;
-    }
-    Users.prototype.getUser = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                params = params || {};
-                request = {
-                    url: '/rest/api/2/user',
-                    method: 'GET',
-                    params: {
-                        accountId: params.accountId,
-                        username: params.username,
-                        key: params.key,
-                        expand: params.expand,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Users.prototype.createUser = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: '/rest/api/2/user',
-                    method: 'POST',
-                    data: __assign({}, params),
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Users.prototype.deleteUser = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: '/rest/api/2/user',
-                    method: 'DELETE',
-                    params: {
-                        accountId: params.accountId,
-                        username: params.username,
-                        key: params.key,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Users.prototype.bulkGetUsers = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: '/rest/api/2/user/bulk',
-                    method: 'GET',
-                    params: {
-                        startAt: params.startAt,
-                        maxResults: params.maxResults,
-                        username: params.username && params.username.join(','),
-                        key: params.key && params.key.join(','),
-                        accountId: params.accountId && params.accountId.join(','),
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Users.prototype.getAccountIdsForUsers = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                params = params || {};
-                request = {
-                    url: '/rest/api/2/user/bulk/migration',
-                    method: 'GET',
-                    params: {
-                        startAt: params.startAt,
-                        maxResults: params.maxResults,
-                        username: params.username && params.username.join(','),
-                        key: params.key && params.key.join(','),
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Users.prototype.getUserDefaultColumns = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                params = params || {};
-                request = {
-                    url: '/rest/api/2/user/columns',
-                    method: 'GET',
-                    params: {
-                        accountId: params.accountId,
-                        username: params.username,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Users.prototype.setUserDefaultColumns = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                params = params || {};
-                request = {
-                    url: '/rest/api/2/user/columns',
-                    method: 'PUT',
-                    params: {
-                        accountId: params.accountId,
-                    },
-                    data: __assign(__assign({}, params), { accountId: undefined }),
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Users.prototype.resetUserDefaultColumns = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                params = params || {};
-                request = {
-                    url: '/rest/api/2/user/columns',
-                    method: 'DELETE',
-                    params: {
-                        accountId: params.accountId,
-                        username: params.username,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Users.prototype.getUserEmail = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: '/rest/api/2/user/email',
-                    method: 'GET',
-                    params: {
-                        accountId: params.accountId,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Users.prototype.getUserEmailBulk = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: '/rest/api/2/user/email/bulk',
-                    method: 'GET',
-                    params: {
-                        accountId: params.accountId && params.accountId.join(','),
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Users.prototype.getUserGroups = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: '/rest/api/2/user/groups',
-                    method: 'GET',
-                    params: {
-                        accountId: params.accountId,
-                        username: params.username,
-                        key: params.key,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Users.prototype.getAllUsersDefault = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                params = params || {};
-                request = {
-                    url: '/rest/api/2/users',
-                    method: 'GET',
-                    params: {
-                        startAt: params.startAt,
-                        maxResults: params.maxResults,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    Users.prototype.getAllUsers = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                params = params || {};
-                request = {
-                    url: '/rest/api/2/users/search',
-                    method: 'GET',
-                    params: {
-                        startAt: params.startAt,
-                        maxResults: params.maxResults,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    return Users;
-}());
-exports.Users = Users;
-
-
-/***/ }),
-/* 654 */
-/***/ (function(module) {
-
-// This is not the set of all possible signals.
-//
-// It IS, however, the set of all signals that trigger
-// an exit on either Linux or BSD systems.  Linux is a
-// superset of the signal names supported on BSD, and
-// the unknown signals just fail to register, so we can
-// catch that easily enough.
-//
-// Don't bother with SIGKILL.  It's uncatchable, which
-// means that we can't fire any callbacks anyway.
-//
-// If a user does happen to register a handler on a non-
-// fatal signal like SIGWINCH or something, and then
-// exit, it'll end up firing `process.emit('exit')`, so
-// the handler will be fired anyway.
-//
-// SIGBUS, SIGFPE, SIGSEGV and SIGILL, when not raised
-// artificially, inherently leave the process in a
-// state from which it is not safe to try and enter JS
-// listeners.
-module.exports = [
-  'SIGABRT',
-  'SIGALRM',
-  'SIGHUP',
-  'SIGINT',
-  'SIGTERM'
-]
-
-if (process.platform !== 'win32') {
-  module.exports.push(
-    'SIGVTALRM',
-    'SIGXCPU',
-    'SIGXFSZ',
-    'SIGUSR2',
-    'SIGTRAP',
-    'SIGSYS',
-    'SIGQUIT',
-    'SIGIOT'
-    // should detect profiler and enable/disable accordingly.
-    // see #21
-    // 'SIGPROF'
-  )
-}
-
-if (process.platform === 'linux') {
-  module.exports.push(
-    'SIGIO',
-    'SIGPOLL',
-    'SIGPWR',
-    'SIGSTKFLT',
-    'SIGUNUSED'
-  )
-}
-
-
-/***/ }),
-/* 655 */,
-/* 656 */,
-/* 657 */,
-/* 658 */,
-/* 659 */,
-/* 660 */,
-/* 661 */,
-/* 662 */,
-/* 663 */,
-/* 664 */,
-/* 665 */,
-/* 666 */
-/***/ (function(__unusedmodule, exports) {
-
-"use strict";
-
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.AppProperties = void 0;
-var AppProperties = /** @class */ (function () {
-    function AppProperties(client) {
-        this.client = client;
-    }
-    AppProperties.prototype.getAppProperties = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/atlassian-connect/1/addons/" + params.addonKey + "/properties",
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    AppProperties.prototype.getAppProperty = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/atlassian-connect/1/addons/" + params.addonKey + "/properties/" + params.propertyKey,
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    AppProperties.prototype.setAppProperty = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/atlassian-connect/1/addons/" + params.addonKey + "/properties/" + params.propertyKey,
-                    method: 'PUT',
-                    data: __assign(__assign({}, params), { addonKey: undefined, propertyKey: undefined }),
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    AppProperties.prototype.deleteAppProperty = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/atlassian-connect/1/addons/" + params.addonKey + "/properties/" + params.propertyKey,
-                    method: 'DELETE',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    return AppProperties;
-}());
-exports.AppProperties = AppProperties;
-
-
-/***/ }),
-/* 667 */,
-/* 668 */,
-/* 669 */
-/***/ (function(module) {
-
-module.exports = require("util");
-
-/***/ }),
-/* 670 */
-/***/ (function(module, __unusedexports, __webpack_require__) {
-
-"use strict";
-
-
-var utils = __webpack_require__(35);
-var settle = __webpack_require__(564);
-var buildFullPath = __webpack_require__(960);
-var buildURL = __webpack_require__(133);
-var http = __webpack_require__(605);
-var https = __webpack_require__(211);
-var httpFollow = __webpack_require__(549).http;
-var httpsFollow = __webpack_require__(549).https;
-var url = __webpack_require__(835);
-var zlib = __webpack_require__(761);
-var pkg = __webpack_require__(361);
-var createError = __webpack_require__(26);
-var enhanceError = __webpack_require__(369);
-
-var isHttps = /https:?/;
-
-/*eslint consistent-return:0*/
-module.exports = function httpAdapter(config) {
-  return new Promise(function dispatchHttpRequest(resolvePromise, rejectPromise) {
-    var resolve = function resolve(value) {
-      resolvePromise(value);
-    };
-    var reject = function reject(value) {
-      rejectPromise(value);
-    };
-    var data = config.data;
-    var headers = config.headers;
-
-    // Set User-Agent (required by some servers)
-    // Only set header if it hasn't been set in config
-    // See https://github.com/axios/axios/issues/69
-    if (!headers['User-Agent'] && !headers['user-agent']) {
-      headers['User-Agent'] = 'axios/' + pkg.version;
-    }
-
-    if (data && !utils.isStream(data)) {
-      if (Buffer.isBuffer(data)) {
-        // Nothing to do...
-      } else if (utils.isArrayBuffer(data)) {
-        data = Buffer.from(new Uint8Array(data));
-      } else if (utils.isString(data)) {
-        data = Buffer.from(data, 'utf-8');
-      } else {
-        return reject(createError(
-          'Data after transformation must be a string, an ArrayBuffer, a Buffer, or a Stream',
-          config
-        ));
-      }
-
-      // Add Content-Length header if data exists
-      headers['Content-Length'] = data.length;
-    }
-
-    // HTTP basic authentication
-    var auth = undefined;
-    if (config.auth) {
-      var username = config.auth.username || '';
-      var password = config.auth.password || '';
-      auth = username + ':' + password;
-    }
-
-    // Parse url
-    var fullPath = buildFullPath(config.baseURL, config.url);
-    var parsed = url.parse(fullPath);
-    var protocol = parsed.protocol || 'http:';
-
-    if (!auth && parsed.auth) {
-      var urlAuth = parsed.auth.split(':');
-      var urlUsername = urlAuth[0] || '';
-      var urlPassword = urlAuth[1] || '';
-      auth = urlUsername + ':' + urlPassword;
-    }
-
-    if (auth) {
-      delete headers.Authorization;
-    }
-
-    var isHttpsRequest = isHttps.test(protocol);
-    var agent = isHttpsRequest ? config.httpsAgent : config.httpAgent;
-
-    var options = {
-      path: buildURL(parsed.path, config.params, config.paramsSerializer).replace(/^\?/, ''),
-      method: config.method.toUpperCase(),
-      headers: headers,
-      agent: agent,
-      agents: { http: config.httpAgent, https: config.httpsAgent },
-      auth: auth
-    };
-
-    if (config.socketPath) {
-      options.socketPath = config.socketPath;
-    } else {
-      options.hostname = parsed.hostname;
-      options.port = parsed.port;
-    }
-
-    var proxy = config.proxy;
-    if (!proxy && proxy !== false) {
-      var proxyEnv = protocol.slice(0, -1) + '_proxy';
-      var proxyUrl = process.env[proxyEnv] || process.env[proxyEnv.toUpperCase()];
-      if (proxyUrl) {
-        var parsedProxyUrl = url.parse(proxyUrl);
-        var noProxyEnv = process.env.no_proxy || process.env.NO_PROXY;
-        var shouldProxy = true;
-
-        if (noProxyEnv) {
-          var noProxy = noProxyEnv.split(',').map(function trim(s) {
-            return s.trim();
-          });
-
-          shouldProxy = !noProxy.some(function proxyMatch(proxyElement) {
-            if (!proxyElement) {
-              return false;
-            }
-            if (proxyElement === '*') {
-              return true;
-            }
-            if (proxyElement[0] === '.' &&
-                parsed.hostname.substr(parsed.hostname.length - proxyElement.length) === proxyElement) {
-              return true;
-            }
-
-            return parsed.hostname === proxyElement;
-          });
-        }
-
-
-        if (shouldProxy) {
-          proxy = {
-            host: parsedProxyUrl.hostname,
-            port: parsedProxyUrl.port
-          };
-
-          if (parsedProxyUrl.auth) {
-            var proxyUrlAuth = parsedProxyUrl.auth.split(':');
-            proxy.auth = {
-              username: proxyUrlAuth[0],
-              password: proxyUrlAuth[1]
-            };
-          }
-        }
-      }
-    }
-
-    if (proxy) {
-      options.hostname = proxy.host;
-      options.host = proxy.host;
-      options.headers.host = parsed.hostname + (parsed.port ? ':' + parsed.port : '');
-      options.port = proxy.port;
-      options.path = protocol + '//' + parsed.hostname + (parsed.port ? ':' + parsed.port : '') + options.path;
-
-      // Basic proxy authorization
-      if (proxy.auth) {
-        var base64 = Buffer.from(proxy.auth.username + ':' + proxy.auth.password, 'utf8').toString('base64');
-        options.headers['Proxy-Authorization'] = 'Basic ' + base64;
-      }
-    }
-
-    var transport;
-    var isHttpsProxy = isHttpsRequest && (proxy ? isHttps.test(proxy.protocol) : true);
-    if (config.transport) {
-      transport = config.transport;
-    } else if (config.maxRedirects === 0) {
-      transport = isHttpsProxy ? https : http;
-    } else {
-      if (config.maxRedirects) {
-        options.maxRedirects = config.maxRedirects;
-      }
-      transport = isHttpsProxy ? httpsFollow : httpFollow;
-    }
-
-    if (config.maxContentLength && config.maxContentLength > -1) {
-      options.maxBodyLength = config.maxContentLength;
-    }
-
-    // Create the request
-    var req = transport.request(options, function handleResponse(res) {
-      if (req.aborted) return;
-
-      // uncompress the response body transparently if required
-      var stream = res;
-      switch (res.headers['content-encoding']) {
-      /*eslint default-case:0*/
-      case 'gzip':
-      case 'compress':
-      case 'deflate':
-        // add the unzipper to the body stream processing pipeline
-        stream = (res.statusCode === 204) ? stream : stream.pipe(zlib.createUnzip());
-
-        // remove the content-encoding in order to not confuse downstream operations
-        delete res.headers['content-encoding'];
-        break;
-      }
-
-      // return the last request in case of redirects
-      var lastRequest = res.req || req;
-
-      var response = {
-        status: res.statusCode,
-        statusText: res.statusMessage,
-        headers: res.headers,
-        config: config,
-        request: lastRequest
-      };
-
-      if (config.responseType === 'stream') {
-        response.data = stream;
-        settle(resolve, reject, response);
-      } else {
-        var responseBuffer = [];
-        stream.on('data', function handleStreamData(chunk) {
-          responseBuffer.push(chunk);
-
-          // make sure the content length is not over the maxContentLength if specified
-          if (config.maxContentLength > -1 && Buffer.concat(responseBuffer).length > config.maxContentLength) {
-            stream.destroy();
-            reject(createError('maxContentLength size of ' + config.maxContentLength + ' exceeded',
-              config, null, lastRequest));
-          }
-        });
-
-        stream.on('error', function handleStreamError(err) {
-          if (req.aborted) return;
-          reject(enhanceError(err, config, null, lastRequest));
-        });
-
-        stream.on('end', function handleStreamEnd() {
-          var responseData = Buffer.concat(responseBuffer);
-          if (config.responseType !== 'arraybuffer') {
-            responseData = responseData.toString(config.responseEncoding);
-          }
-
-          response.data = responseData;
-          settle(resolve, reject, response);
-        });
-      }
-    });
-
-    // Handle errors
-    req.on('error', function handleRequestError(err) {
-      if (req.aborted) return;
-      reject(enhanceError(err, config, null, req));
-    });
-
-    // Handle request timeout
-    if (config.timeout) {
-      // Sometime, the response will be very slow, and does not respond, the connect event will be block by event loop system.
-      // And timer callback will be fired, and abort() will be invoked before connection, then get "socket hang up" and code ECONNRESET.
-      // At this time, if we have a large number of request, nodejs will hang up some socket on background. and the number will up and up.
-      // And then these socket which be hang up will devoring CPU little by little.
-      // ClientRequest.setTimeout will be fired on the specify milliseconds, and can make sure that abort() will be fired after connect.
-      req.setTimeout(config.timeout, function handleRequestTimeout() {
-        req.abort();
-        reject(createError('timeout of ' + config.timeout + 'ms exceeded', config, 'ECONNABORTED', req));
-      });
-    }
-
-    if (config.cancelToken) {
-      // Handle cancellation
-      config.cancelToken.promise.then(function onCanceled(cancel) {
-        if (req.aborted) return;
-
-        req.abort();
-        reject(cancel);
-      });
-    }
-
-    // Send the request
-    if (utils.isStream(data)) {
-      data.on('error', function handleStreamError(err) {
-        reject(enhanceError(err, config, null, req));
-      }).pipe(req);
-    } else {
-      req.end(data);
-    }
-  });
-};
-
-
-/***/ }),
-/* 671 */,
-/* 672 */,
-/* 673 */
-/***/ (function(__unusedmodule, exports) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.WorkflowSchemeDrafts = void 0;
-var WorkflowSchemeDrafts = /** @class */ (function () {
-    function WorkflowSchemeDrafts(client) {
-        this.client = client;
-    }
-    WorkflowSchemeDrafts.prototype.createDraftWorkflowScheme = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/workflowscheme/" + params.id + "/createdraft",
-                    method: 'POST',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    WorkflowSchemeDrafts.prototype.getDraftWorkflowScheme = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/workflowscheme/" + params.id + "/draft",
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    WorkflowSchemeDrafts.prototype.updateDraftWorkflowScheme = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/workflowscheme/" + params.id + "/draft",
-                    method: 'PUT',
-                    data: {
-                        id: params.id,
-                        name: params.name,
-                        description: params.description,
-                        defaultWorkflow: params.defaultWorkflow,
-                        issueTypeMappings: params.issueTypeMappings,
-                        originalDefaultWorkflow: params.originalDefaultWorkflow,
-                        originalIssueTypeMappings: params.originalIssueTypeMappings,
-                        draft: params.draft,
-                        lastModifiedUser: params.lastModifiedUser,
-                        lastModified: params.lastModified,
-                        self: params.self,
-                        updateDraftIfNeeded: params.updateDraftIfNeeded,
-                        issueTypes: params.issueTypes,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    WorkflowSchemeDrafts.prototype.deleteDraftWorkflowScheme = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/workflowscheme/" + params.id + "/draft",
-                    method: 'DELETE',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    WorkflowSchemeDrafts.prototype.getDraftDefaultWorkflow = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/workflowscheme/" + params.id + "/draft/default",
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    WorkflowSchemeDrafts.prototype.updateDraftDefaultWorkflow = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/workflowscheme/" + params.id + "/draft/default",
-                    method: 'PUT',
-                    data: {
-                        workflow: params.workflow,
-                        updateDraftIfNeeded: params.updateDraftIfNeeded,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    WorkflowSchemeDrafts.prototype.deleteDraftDefaultWorkflow = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/workflowscheme/" + params.id + "/draft/default",
-                    method: 'DELETE',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    WorkflowSchemeDrafts.prototype.getWorkflowForIssueTypeInDraftWorkflowScheme = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/workflowscheme/" + params.id + "/draft/issuetype/" + params.issueType,
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    WorkflowSchemeDrafts.prototype.setWorkflowForIssueTypeInDraftWorkflowScheme = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/workflowscheme/" + params.id + "/draft/issuetype/" + params.issueType,
-                    method: 'PUT',
-                    data: {
-                        issueType: params.issueType,
-                        workflow: params.workflow,
-                        updateDraftIfNeeded: params.updateDraftIfNeeded,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    WorkflowSchemeDrafts.prototype.deleteWorkflowForIssueTypeInDraftWorkflowScheme = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/workflowscheme/" + params.id + "/draft/issuetype/" + params.issueType,
-                    method: 'DELETE',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    WorkflowSchemeDrafts.prototype.getIssueTypesForWorkflowsInDraftWorkflowScheme = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/workflowscheme/" + params.id + "/draft/workflow",
-                    method: 'GET',
-                    params: {
-                        workflowName: params.workflowName,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    WorkflowSchemeDrafts.prototype.setIssueTypesForWorkflowInWorkflowScheme = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/workflowscheme/" + params.id + "/draft/workflow",
-                    method: 'PUT',
-                    params: {
-                        workflowName: params.workflowName,
-                    },
-                    data: {
-                        workflow: params.workflow,
-                        issueTypes: params.issueTypes,
-                        defaultMapping: params.defaultMapping,
-                        updateDraftIfNeeded: params.updateDraftIfNeeded,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    WorkflowSchemeDrafts.prototype.deleteIssueTypesForWorkflowInDraftWorkflowScheme = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/workflowscheme/" + params.id + "/draft/workflow",
-                    method: 'DELETE',
-                    params: {
-                        workflowName: params.workflowName,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    return WorkflowSchemeDrafts;
-}());
-exports.WorkflowSchemeDrafts = WorkflowSchemeDrafts;
-
-
-/***/ }),
-/* 674 */,
-/* 675 */,
-/* 676 */,
-/* 677 */,
-/* 678 */,
-/* 679 */
-/***/ (function(__unusedmodule, exports) {
-
-"use strict";
-
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.IssueCommentProperties = void 0;
-var IssueCommentProperties = /** @class */ (function () {
-    function IssueCommentProperties(client) {
-        this.client = client;
-    }
-    IssueCommentProperties.prototype.getCommentPropertyKeys = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/comment/" + params.commentId + "/properties",
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    IssueCommentProperties.prototype.getCommentProperty = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/comment/" + params.commentId + "/properties/" + params.propertyKey,
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    IssueCommentProperties.prototype.setCommentProperty = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/comment/" + params.commentId + "/properties/" + params.propertyKey,
-                    method: 'PUT',
-                    data: __assign(__assign({}, params), { commentId: undefined, propertyKey: undefined }),
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    IssueCommentProperties.prototype.deleteCommentProperty = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/comment/" + params.commentId + "/properties/" + params.propertyKey,
-                    method: 'DELETE',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    return IssueCommentProperties;
-}());
-exports.IssueCommentProperties = IssueCommentProperties;
-
-
-/***/ }),
-/* 680 */,
-/* 681 */,
-/* 682 */,
-/* 683 */,
-/* 684 */,
-/* 685 */,
-/* 686 */,
-/* 687 */,
-/* 688 */
-/***/ (function(module, __unusedexports, __webpack_require__) {
-
-"use strict";
-
-
-var utils = __webpack_require__(35);
-
-module.exports = (
-  utils.isStandardBrowserEnv() ?
-
-  // Standard browser envs have full support of the APIs needed to test
-  // whether the request URL is of the same origin as current location.
-    (function standardBrowserEnv() {
-      var msie = /(msie|trident)/i.test(navigator.userAgent);
-      var urlParsingNode = document.createElement('a');
-      var originURL;
-
-      /**
-    * Parse a URL to discover it's components
-    *
-    * @param {String} url The URL to be parsed
-    * @returns {Object}
-    */
-      function resolveURL(url) {
-        var href = url;
-
-        if (msie) {
-        // IE needs attribute set twice to normalize properties
-          urlParsingNode.setAttribute('href', href);
-          href = urlParsingNode.href;
-        }
-
-        urlParsingNode.setAttribute('href', href);
-
-        // urlParsingNode provides the UrlUtils interface - http://url.spec.whatwg.org/#urlutils
-        return {
-          href: urlParsingNode.href,
-          protocol: urlParsingNode.protocol ? urlParsingNode.protocol.replace(/:$/, '') : '',
-          host: urlParsingNode.host,
-          search: urlParsingNode.search ? urlParsingNode.search.replace(/^\?/, '') : '',
-          hash: urlParsingNode.hash ? urlParsingNode.hash.replace(/^#/, '') : '',
-          hostname: urlParsingNode.hostname,
-          port: urlParsingNode.port,
-          pathname: (urlParsingNode.pathname.charAt(0) === '/') ?
-            urlParsingNode.pathname :
-            '/' + urlParsingNode.pathname
-        };
-      }
-
-      originURL = resolveURL(window.location.href);
-
-      /**
-    * Determine if a URL shares the same origin as the current location
-    *
-    * @param {String} requestURL The URL to test
-    * @returns {boolean} True if URL shares the same origin, otherwise false
-    */
-      return function isURLSameOrigin(requestURL) {
-        var parsed = (utils.isString(requestURL)) ? resolveURL(requestURL) : requestURL;
-        return (parsed.protocol === originURL.protocol &&
-            parsed.host === originURL.host);
-      };
-    })() :
-
-  // Non standard browser envs (web workers, react-native) lack needed support.
-    (function nonStandardBrowserEnv() {
-      return function isURLSameOrigin() {
-        return true;
-      };
-    })()
-);
-
-
-/***/ }),
-/* 689 */,
-/* 690 */,
-/* 691 */,
-/* 692 */
-/***/ (function(__unusedmodule, exports) {
-
-"use strict";
-
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
-class Deprecation extends Error {
-  constructor(message) {
-    super(message); // Maintains proper stack trace (only available on V8)
-
-    /* istanbul ignore next */
-
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, this.constructor);
-    }
-
-    this.name = 'Deprecation';
-  }
-
-}
-
-exports.Deprecation = Deprecation;
-
-
-/***/ }),
-/* 693 */,
-/* 694 */,
-/* 695 */,
-/* 696 */
-/***/ (function(module) {
-
-"use strict";
-
-
-const isStream = stream =>
-	stream !== null &&
-	typeof stream === 'object' &&
-	typeof stream.pipe === 'function';
-
-isStream.writable = stream =>
-	isStream(stream) &&
-	stream.writable !== false &&
-	typeof stream._write === 'function' &&
-	typeof stream._writableState === 'object';
-
-isStream.readable = stream =>
-	isStream(stream) &&
-	stream.readable !== false &&
-	typeof stream._read === 'function' &&
-	typeof stream._readableState === 'object';
-
-isStream.duplex = stream =>
-	isStream.writable(stream) &&
-	isStream.readable(stream);
-
-isStream.transform = stream =>
-	isStream.duplex(stream) &&
-	typeof stream._transform === 'function' &&
-	typeof stream._transformState === 'object';
-
-module.exports = isStream;
-
-
-/***/ }),
-/* 697 */,
-/* 698 */
-/***/ (function(__unusedmodule, exports) {
-
-"use strict";
-
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.DynamicModules = void 0;
-var DynamicModules = /** @class */ (function () {
-    function DynamicModules(client) {
-        this.client = client;
-    }
-    DynamicModules.prototype.getModules = function (callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: '/rest/atlassian-connect/1/app/module/dynamic',
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    DynamicModules.prototype.registerModules = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: '/rest/atlassian-connect/1/app/module/dynamic',
-                    method: 'POST',
-                    data: __assign({}, params),
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    DynamicModules.prototype.removeModules = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                params = params || {};
-                request = {
-                    url: '/rest/atlassian-connect/1/app/module/dynamic',
-                    method: 'DELETE',
-                    params: {
-                        moduleKey: params.moduleKey && params.moduleKey.join(','),
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    return DynamicModules;
-}());
-exports.DynamicModules = DynamicModules;
-
-
-/***/ }),
-/* 699 */,
-/* 700 */
-/***/ (function(module) {
-
-/*!
- * jsUri
- * https://github.com/derek-watson/jsUri
- *
- * Copyright 2013, Derek Watson
- * Released under the MIT license.
- *
- * Includes parseUri regular expressions
- * http://blog.stevenlevithan.com/archives/parseuri
- * Copyright 2007, Steven Levithan
- * Released under the MIT license.
- */
-
- /*globals define, module */
-
-(function(global) {
-
-  var re = {
-    starts_with_slashes: /^\/+/,
-    ends_with_slashes: /\/+$/,
-    pluses: /\+/g,
-    query_separator: /[&;]/,
-    uri_parser: /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@\/]*)(?::([^:@]*))?)?@)?(\[[0-9a-fA-F:.]+\]|[^:\/?#]*)(?::(\d+|(?=:)))?(:)?)((((?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
-  };
-
-  /**
-   * Define forEach for older js environments
-   * @see https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/forEach#Compatibility
-   */
-  if (!Array.prototype.forEach) {
-    Array.prototype.forEach = function(callback, thisArg) {
-      var T, k;
-
-      if (this == null) {
-        throw new TypeError(' this is null or not defined');
-      }
-
-      var O = Object(this);
-      var len = O.length >>> 0;
-
-      if (typeof callback !== "function") {
-        throw new TypeError(callback + ' is not a function');
-      }
-
-      if (arguments.length > 1) {
-        T = thisArg;
-      }
-
-      k = 0;
-
-      while (k < len) {
-        var kValue;
-        if (k in O) {
-          kValue = O[k];
-          callback.call(T, kValue, k, O);
-        }
-        k++;
-      }
-    };
-  }
-
-  /**
-   * unescape a query param value
-   * @param  {string} s encoded value
-   * @return {string}   decoded value
-   */
-  function decode(s) {
-    if (s) {
-        s = s.toString().replace(re.pluses, '%20');
-        s = decodeURIComponent(s);
-    }
-    return s;
-  }
-
-  /**
-   * Breaks a uri string down into its individual parts
-   * @param  {string} str uri
-   * @return {object}     parts
-   */
-  function parseUri(str) {
-    var parser = re.uri_parser;
-    var parserKeys = ["source", "protocol", "authority", "userInfo", "user", "password", "host", "port", "isColonUri", "relative", "path", "directory", "file", "query", "anchor"];
-    var m = parser.exec(str || '');
-    var parts = {};
-
-    parserKeys.forEach(function(key, i) {
-      parts[key] = m[i] || '';
-    });
-
-    return parts;
-  }
-
-  /**
-   * Breaks a query string down into an array of key/value pairs
-   * @param  {string} str query
-   * @return {array}      array of arrays (key/value pairs)
-   */
-  function parseQuery(str) {
-    var i, ps, p, n, k, v, l;
-    var pairs = [];
-
-    if (typeof(str) === 'undefined' || str === null || str === '') {
-      return pairs;
-    }
-
-    if (str.indexOf('?') === 0) {
-      str = str.substring(1);
-    }
-
-    ps = str.toString().split(re.query_separator);
-
-    for (i = 0, l = ps.length; i < l; i++) {
-      p = ps[i];
-      n = p.indexOf('=');
-
-      if (n !== 0) {
-        k = decode(p.substring(0, n));
-        v = decode(p.substring(n + 1));
-        pairs.push(n === -1 ? [p, null] : [k, v]);
-      }
-
-    }
-    return pairs;
-  }
-
-  /**
-   * Creates a new Uri object
-   * @constructor
-   * @param {string} str
-   */
-  function Uri(str) {
-    this.uriParts = parseUri(str);
-    this.queryPairs = parseQuery(this.uriParts.query);
-    this.hasAuthorityPrefixUserPref = null;
-  }
-
-  /**
-   * Define getter/setter methods
-   */
-  ['protocol', 'userInfo', 'host', 'port', 'path', 'anchor'].forEach(function(key) {
-    Uri.prototype[key] = function(val) {
-      if (typeof val !== 'undefined') {
-        this.uriParts[key] = val;
-      }
-      return this.uriParts[key];
-    };
-  });
-
-  /**
-   * if there is no protocol, the leading // can be enabled or disabled
-   * @param  {Boolean}  val
-   * @return {Boolean}
-   */
-  Uri.prototype.hasAuthorityPrefix = function(val) {
-    if (typeof val !== 'undefined') {
-      this.hasAuthorityPrefixUserPref = val;
-    }
-
-    if (this.hasAuthorityPrefixUserPref === null) {
-      return (this.uriParts.source.indexOf('//') !== -1);
-    } else {
-      return this.hasAuthorityPrefixUserPref;
-    }
-  };
-
-  Uri.prototype.isColonUri = function (val) {
-    if (typeof val !== 'undefined') {
-      this.uriParts.isColonUri = !!val;
-    } else {
-      return !!this.uriParts.isColonUri;
-    }
-  };
-
-  /**
-   * Serializes the internal state of the query pairs
-   * @param  {string} [val]   set a new query string
-   * @return {string}         query string
-   */
-  Uri.prototype.query = function(val) {
-    var s = '', i, param, l;
-
-    if (typeof val !== 'undefined') {
-      this.queryPairs = parseQuery(val);
-    }
-
-    for (i = 0, l = this.queryPairs.length; i < l; i++) {
-      param = this.queryPairs[i];
-      if (s.length > 0) {
-        s += '&';
-      }
-      if (param[1] === null) {
-        s += param[0];
-      } else {
-        s += param[0];
-        s += '=';
-        if (typeof param[1] !== 'undefined') {
-          s += encodeURIComponent(param[1]);
-        }
-      }
-    }
-    return s.length > 0 ? '?' + s : s;
-  };
-
-  /**
-   * returns the first query param value found for the key
-   * @param  {string} key query key
-   * @return {string}     first value found for key
-   */
-  Uri.prototype.getQueryParamValue = function (key) {
-    var param, i, l;
-    for (i = 0, l = this.queryPairs.length; i < l; i++) {
-      param = this.queryPairs[i];
-      if (key === param[0]) {
-        return param[1];
-      }
-    }
-  };
-
-  /**
-   * returns an array of query param values for the key
-   * @param  {string} key query key
-   * @return {array}      array of values
-   */
-  Uri.prototype.getQueryParamValues = function (key) {
-    var arr = [], i, param, l;
-    for (i = 0, l = this.queryPairs.length; i < l; i++) {
-      param = this.queryPairs[i];
-      if (key === param[0]) {
-        arr.push(param[1]);
-      }
-    }
-    return arr;
-  };
-
-  /**
-   * removes query parameters
-   * @param  {string} key     remove values for key
-   * @param  {val}    [val]   remove a specific value, otherwise removes all
-   * @return {Uri}            returns self for fluent chaining
-   */
-  Uri.prototype.deleteQueryParam = function (key, val) {
-    var arr = [], i, param, keyMatchesFilter, valMatchesFilter, l;
-
-    for (i = 0, l = this.queryPairs.length; i < l; i++) {
-
-      param = this.queryPairs[i];
-      keyMatchesFilter = decode(param[0]) === decode(key);
-      valMatchesFilter = param[1] === val;
-
-      if ((arguments.length === 1 && !keyMatchesFilter) || (arguments.length === 2 && (!keyMatchesFilter || !valMatchesFilter))) {
-        arr.push(param);
-      }
-    }
-
-    this.queryPairs = arr;
-
-    return this;
-  };
-
-  /**
-   * adds a query parameter
-   * @param  {string}  key        add values for key
-   * @param  {string}  val        value to add
-   * @param  {integer} [index]    specific index to add the value at
-   * @return {Uri}                returns self for fluent chaining
-   */
-  Uri.prototype.addQueryParam = function (key, val, index) {
-    if (arguments.length === 3 && index !== -1) {
-      index = Math.min(index, this.queryPairs.length);
-      this.queryPairs.splice(index, 0, [key, val]);
-    } else if (arguments.length > 0) {
-      this.queryPairs.push([key, val]);
-    }
-    return this;
-  };
-
-  /**
-   * test for the existence of a query parameter
-   * @param  {string}  key        add values for key
-   * @param  {string}  val        value to add
-   * @param  {integer} [index]    specific index to add the value at
-   * @return {Uri}                returns self for fluent chaining
-   */
-  Uri.prototype.hasQueryParam = function (key) {
-    var i, len = this.queryPairs.length;
-    for (i = 0; i < len; i++) {
-      if (this.queryPairs[i][0] == key)
-        return true;
-    }
-    return false;
-  };
-
-  /**
-   * replaces query param values
-   * @param  {string} key         key to replace value for
-   * @param  {string} newVal      new value
-   * @param  {string} [oldVal]    replace only one specific value (otherwise replaces all)
-   * @return {Uri}                returns self for fluent chaining
-   */
-  Uri.prototype.replaceQueryParam = function (key, newVal, oldVal) {
-    var index = -1, len = this.queryPairs.length, i, param;
-
-    if (arguments.length === 3) {
-      for (i = 0; i < len; i++) {
-        param = this.queryPairs[i];
-        if (decode(param[0]) === decode(key) && decodeURIComponent(param[1]) === decode(oldVal)) {
-          index = i;
-          break;
-        }
-      }
-      if (index >= 0) {
-        this.deleteQueryParam(key, decode(oldVal)).addQueryParam(key, newVal, index);
-      }
-    } else {
-      for (i = 0; i < len; i++) {
-        param = this.queryPairs[i];
-        if (decode(param[0]) === decode(key)) {
-          index = i;
-          break;
-        }
-      }
-      this.deleteQueryParam(key);
-      this.addQueryParam(key, newVal, index);
-    }
-    return this;
-  };
-
-  /**
-   * Define fluent setter methods (setProtocol, setHasAuthorityPrefix, etc)
-   */
-  ['protocol', 'hasAuthorityPrefix', 'isColonUri', 'userInfo', 'host', 'port', 'path', 'query', 'anchor'].forEach(function(key) {
-    var method = 'set' + key.charAt(0).toUpperCase() + key.slice(1);
-    Uri.prototype[method] = function(val) {
-      this[key](val);
-      return this;
-    };
-  });
-
-  /**
-   * Scheme name, colon and doubleslash, as required
-   * @return {string} http:// or possibly just //
-   */
-  Uri.prototype.scheme = function() {
-    var s = '';
-
-    if (this.protocol()) {
-      s += this.protocol();
-      if (this.protocol().indexOf(':') !== this.protocol().length - 1) {
-        s += ':';
-      }
-      s += '//';
-    } else {
-      if (this.hasAuthorityPrefix() && this.host()) {
-        s += '//';
-      }
-    }
-
-    return s;
-  };
-
-  /**
-   * Same as Mozilla nsIURI.prePath
-   * @return {string} scheme://user:password@host:port
-   * @see  https://developer.mozilla.org/en/nsIURI
-   */
-  Uri.prototype.origin = function() {
-    var s = this.scheme();
-
-    if (this.userInfo() && this.host()) {
-      s += this.userInfo();
-      if (this.userInfo().indexOf('@') !== this.userInfo().length - 1) {
-        s += '@';
-      }
-    }
-
-    if (this.host()) {
-      s += this.host();
-      if (this.port() || (this.path() && this.path().substr(0, 1).match(/[0-9]/))) {
-        s += ':' + this.port();
-      }
-    }
-
-    return s;
-  };
-
-  /**
-   * Adds a trailing slash to the path
-   */
-  Uri.prototype.addTrailingSlash = function() {
-    var path = this.path() || '';
-
-    if (path.substr(-1) !== '/') {
-      this.path(path + '/');
-    }
-
-    return this;
-  };
-
-  /**
-   * Serializes the internal state of the Uri object
-   * @return {string}
-   */
-  Uri.prototype.toString = function() {
-    var path, s = this.origin();
-
-    if (this.isColonUri()) {
-      if (this.path()) {
-        s += ':'+this.path();
-      }
-    } else if (this.path()) {
-      path = this.path();
-      if (!(re.ends_with_slashes.test(s) || re.starts_with_slashes.test(path))) {
-        s += '/';
-      } else {
-        if (s) {
-          s.replace(re.ends_with_slashes, '/');
-        }
-        path = path.replace(re.starts_with_slashes, '/');
-      }
-      s += path;
-    } else {
-      if (this.host() && (this.query().toString() || this.anchor())) {
-        s += '/';
-      }
-    }
-    if (this.query().toString()) {
-      s += this.query().toString();
-    }
-
-    if (this.anchor()) {
-      if (this.anchor().indexOf('#') !== 0) {
-        s += '#';
-      }
-      s += this.anchor();
-    }
-
-    return s;
-  };
-
-  /**
-   * Clone a Uri object
-   * @return {Uri} duplicate copy of the Uri
-   */
-  Uri.prototype.clone = function() {
-    return new Uri(this.toString());
-  };
-
-  /**
-   * export via AMD or CommonJS, otherwise leak a global
-   */
-  if (typeof define === 'function' && define.amd) {
-    define(function() {
-      return Uri;
-    });
-  } else if ( true && typeof module.exports !== 'undefined') {
-    module.exports = Uri;
-  } else {
-    global.Uri = Uri;
-  }
-}(this));
-
-
-/***/ }),
-/* 701 */,
-/* 702 */,
-/* 703 */
-/***/ (function(__unusedmodule, exports) {
-
-"use strict";
-
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.IssueAttachments = void 0;
-var IssueAttachments = /** @class */ (function () {
-    function IssueAttachments(client) {
-        this.client = client;
-    }
-    IssueAttachments.prototype.getJiraAttachmentSettings = function (callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: '/rest/api/2/attachment/meta',
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    IssueAttachments.prototype.getAttachmentMetadata = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/attachment/" + params.id,
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    IssueAttachments.prototype.deleteAttachment = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/attachment/" + params.id,
-                    method: 'DELETE',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    IssueAttachments.prototype.getAllMetadataForAnExpandedAttachment = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/attachment/" + params.id + "/expand/human",
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    IssueAttachments.prototype.getContentsMetadataForAnExpandedAttachment = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/attachment/" + params.id + "/expand/raw",
-                    method: 'GET',
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    IssueAttachments.prototype.addAttachment = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: "/rest/api/2/issue/" + params.issueIdOrKey + "/attachments",
-                    method: 'POST',
-                    data: __assign(__assign({}, params), { issueIdOrKey: undefined }),
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    return IssueAttachments;
-}());
-exports.IssueAttachments = IssueAttachments;
-
-
-/***/ }),
-/* 704 */,
-/* 705 */,
-/* 706 */,
-/* 707 */,
-/* 708 */,
-/* 709 */,
-/* 710 */,
-/* 711 */,
-/* 712 */,
-/* 713 */
 /***/ (function(__unusedmodule, exports) {
 
 "use strict";
@@ -19513,6 +15530,3780 @@ exports.restEndpointMethods = restEndpointMethods;
 
 
 /***/ }),
+/* 560 */
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+Object.defineProperty(exports,"__esModule",{value:true});exports.SIGNALS=void 0;
+
+const SIGNALS=[
+{
+name:"SIGHUP",
+number:1,
+action:"terminate",
+description:"Terminal closed",
+standard:"posix"},
+
+{
+name:"SIGINT",
+number:2,
+action:"terminate",
+description:"User interruption with CTRL-C",
+standard:"ansi"},
+
+{
+name:"SIGQUIT",
+number:3,
+action:"core",
+description:"User interruption with CTRL-\\",
+standard:"posix"},
+
+{
+name:"SIGILL",
+number:4,
+action:"core",
+description:"Invalid machine instruction",
+standard:"ansi"},
+
+{
+name:"SIGTRAP",
+number:5,
+action:"core",
+description:"Debugger breakpoint",
+standard:"posix"},
+
+{
+name:"SIGABRT",
+number:6,
+action:"core",
+description:"Aborted",
+standard:"ansi"},
+
+{
+name:"SIGIOT",
+number:6,
+action:"core",
+description:"Aborted",
+standard:"bsd"},
+
+{
+name:"SIGBUS",
+number:7,
+action:"core",
+description:
+"Bus error due to misaligned, non-existing address or paging error",
+standard:"bsd"},
+
+{
+name:"SIGEMT",
+number:7,
+action:"terminate",
+description:"Command should be emulated but is not implemented",
+standard:"other"},
+
+{
+name:"SIGFPE",
+number:8,
+action:"core",
+description:"Floating point arithmetic error",
+standard:"ansi"},
+
+{
+name:"SIGKILL",
+number:9,
+action:"terminate",
+description:"Forced termination",
+standard:"posix",
+forced:true},
+
+{
+name:"SIGUSR1",
+number:10,
+action:"terminate",
+description:"Application-specific signal",
+standard:"posix"},
+
+{
+name:"SIGSEGV",
+number:11,
+action:"core",
+description:"Segmentation fault",
+standard:"ansi"},
+
+{
+name:"SIGUSR2",
+number:12,
+action:"terminate",
+description:"Application-specific signal",
+standard:"posix"},
+
+{
+name:"SIGPIPE",
+number:13,
+action:"terminate",
+description:"Broken pipe or socket",
+standard:"posix"},
+
+{
+name:"SIGALRM",
+number:14,
+action:"terminate",
+description:"Timeout or timer",
+standard:"posix"},
+
+{
+name:"SIGTERM",
+number:15,
+action:"terminate",
+description:"Termination",
+standard:"ansi"},
+
+{
+name:"SIGSTKFLT",
+number:16,
+action:"terminate",
+description:"Stack is empty or overflowed",
+standard:"other"},
+
+{
+name:"SIGCHLD",
+number:17,
+action:"ignore",
+description:"Child process terminated, paused or unpaused",
+standard:"posix"},
+
+{
+name:"SIGCLD",
+number:17,
+action:"ignore",
+description:"Child process terminated, paused or unpaused",
+standard:"other"},
+
+{
+name:"SIGCONT",
+number:18,
+action:"unpause",
+description:"Unpaused",
+standard:"posix",
+forced:true},
+
+{
+name:"SIGSTOP",
+number:19,
+action:"pause",
+description:"Paused",
+standard:"posix",
+forced:true},
+
+{
+name:"SIGTSTP",
+number:20,
+action:"pause",
+description:"Paused using CTRL-Z or \"suspend\"",
+standard:"posix"},
+
+{
+name:"SIGTTIN",
+number:21,
+action:"pause",
+description:"Background process cannot read terminal input",
+standard:"posix"},
+
+{
+name:"SIGBREAK",
+number:21,
+action:"terminate",
+description:"User interruption with CTRL-BREAK",
+standard:"other"},
+
+{
+name:"SIGTTOU",
+number:22,
+action:"pause",
+description:"Background process cannot write to terminal output",
+standard:"posix"},
+
+{
+name:"SIGURG",
+number:23,
+action:"ignore",
+description:"Socket received out-of-band data",
+standard:"bsd"},
+
+{
+name:"SIGXCPU",
+number:24,
+action:"core",
+description:"Process timed out",
+standard:"bsd"},
+
+{
+name:"SIGXFSZ",
+number:25,
+action:"core",
+description:"File too big",
+standard:"bsd"},
+
+{
+name:"SIGVTALRM",
+number:26,
+action:"terminate",
+description:"Timeout or timer",
+standard:"bsd"},
+
+{
+name:"SIGPROF",
+number:27,
+action:"terminate",
+description:"Timeout or timer",
+standard:"bsd"},
+
+{
+name:"SIGWINCH",
+number:28,
+action:"ignore",
+description:"Terminal window size changed",
+standard:"bsd"},
+
+{
+name:"SIGIO",
+number:29,
+action:"terminate",
+description:"I/O is available",
+standard:"other"},
+
+{
+name:"SIGPOLL",
+number:29,
+action:"terminate",
+description:"Watched event",
+standard:"other"},
+
+{
+name:"SIGINFO",
+number:29,
+action:"ignore",
+description:"Request for process information",
+standard:"other"},
+
+{
+name:"SIGPWR",
+number:30,
+action:"terminate",
+description:"Device running out of power",
+standard:"systemv"},
+
+{
+name:"SIGSYS",
+number:31,
+action:"core",
+description:"Invalid system call",
+standard:"other"},
+
+{
+name:"SIGUNUSED",
+number:31,
+action:"terminate",
+description:"Invalid system call",
+standard:"other"}];exports.SIGNALS=SIGNALS;
+//# sourceMappingURL=core.js.map
+
+/***/ }),
+/* 561 */,
+/* 562 */
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+function getUserAgent() {
+  if (typeof navigator === "object" && "userAgent" in navigator) {
+    return navigator.userAgent;
+  }
+
+  if (typeof process === "object" && "version" in process) {
+    return `Node.js/${process.version.substr(1)} (${process.platform}; ${process.arch})`;
+  }
+
+  return "<environment undetectable>";
+}
+
+exports.getUserAgent = getUserAgent;
+//# sourceMappingURL=index.js.map
+
+
+/***/ }),
+/* 563 */,
+/* 564 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+"use strict";
+
+
+var createError = __webpack_require__(26);
+
+/**
+ * Resolve or reject a Promise based on response status.
+ *
+ * @param {Function} resolve A function that resolves the promise.
+ * @param {Function} reject A function that rejects the promise.
+ * @param {object} response The response.
+ */
+module.exports = function settle(resolve, reject, response) {
+  var validateStatus = response.config.validateStatus;
+  if (!validateStatus || validateStatus(response.status)) {
+    resolve(response);
+  } else {
+    reject(createError(
+      'Request failed with status code ' + response.status,
+      response.config,
+      null,
+      response.request,
+      response
+    ));
+  }
+};
+
+
+/***/ }),
+/* 565 */
+/***/ (function(module) {
+
+"use strict";
+
+
+const pathKey = (options = {}) => {
+	const environment = options.env || process.env;
+	const platform = options.platform || process.platform;
+
+	if (platform !== 'win32') {
+		return 'PATH';
+	}
+
+	return Object.keys(environment).reverse().find(key => key.toUpperCase() === 'PATH') || 'Path';
+};
+
+module.exports = pathKey;
+// TODO: Remove this for the next major release
+module.exports.default = pathKey;
+
+
+/***/ }),
+/* 566 */,
+/* 567 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+"use strict";
+
+const os = __webpack_require__(87);
+const onExit = __webpack_require__(497);
+
+const DEFAULT_FORCE_KILL_TIMEOUT = 1000 * 5;
+
+// Monkey-patches `childProcess.kill()` to add `forceKillAfterTimeout` behavior
+const spawnedKill = (kill, signal = 'SIGTERM', options = {}) => {
+	const killResult = kill(signal);
+	setKillTimeout(kill, signal, options, killResult);
+	return killResult;
+};
+
+const setKillTimeout = (kill, signal, options, killResult) => {
+	if (!shouldForceKill(signal, options, killResult)) {
+		return;
+	}
+
+	const timeout = getForceKillAfterTimeout(options);
+	const t = setTimeout(() => {
+		kill('SIGKILL');
+	}, timeout);
+
+	// Guarded because there's no `.unref()` when `execa` is used in the renderer
+	// process in Electron. This cannot be tested since we don't run tests in
+	// Electron.
+	// istanbul ignore else
+	if (t.unref) {
+		t.unref();
+	}
+};
+
+const shouldForceKill = (signal, {forceKillAfterTimeout}, killResult) => {
+	return isSigterm(signal) && forceKillAfterTimeout !== false && killResult;
+};
+
+const isSigterm = signal => {
+	return signal === os.constants.signals.SIGTERM ||
+		(typeof signal === 'string' && signal.toUpperCase() === 'SIGTERM');
+};
+
+const getForceKillAfterTimeout = ({forceKillAfterTimeout = true}) => {
+	if (forceKillAfterTimeout === true) {
+		return DEFAULT_FORCE_KILL_TIMEOUT;
+	}
+
+	if (!Number.isFinite(forceKillAfterTimeout) || forceKillAfterTimeout < 0) {
+		throw new TypeError(`Expected the \`forceKillAfterTimeout\` option to be a non-negative integer, got \`${forceKillAfterTimeout}\` (${typeof forceKillAfterTimeout})`);
+	}
+
+	return forceKillAfterTimeout;
+};
+
+// `childProcess.cancel()`
+const spawnedCancel = (spawned, context) => {
+	const killResult = spawned.kill();
+
+	if (killResult) {
+		context.isCanceled = true;
+	}
+};
+
+const timeoutKill = (spawned, signal, reject) => {
+	spawned.kill(signal);
+	reject(Object.assign(new Error('Timed out'), {timedOut: true, signal}));
+};
+
+// `timeout` option handling
+const setupTimeout = (spawned, {timeout, killSignal = 'SIGTERM'}, spawnedPromise) => {
+	if (timeout === 0 || timeout === undefined) {
+		return spawnedPromise;
+	}
+
+	if (!Number.isFinite(timeout) || timeout < 0) {
+		throw new TypeError(`Expected the \`timeout\` option to be a non-negative integer, got \`${timeout}\` (${typeof timeout})`);
+	}
+
+	let timeoutId;
+	const timeoutPromise = new Promise((resolve, reject) => {
+		timeoutId = setTimeout(() => {
+			timeoutKill(spawned, killSignal, reject);
+		}, timeout);
+	});
+
+	const safeSpawnedPromise = spawnedPromise.finally(() => {
+		clearTimeout(timeoutId);
+	});
+
+	return Promise.race([timeoutPromise, safeSpawnedPromise]);
+};
+
+// `cleanup` option handling
+const setExitHandler = async (spawned, {cleanup, detached}, timedPromise) => {
+	if (!cleanup || detached) {
+		return timedPromise;
+	}
+
+	const removeExitHandler = onExit(() => {
+		spawned.kill();
+	});
+
+	return timedPromise.finally(() => {
+		removeExitHandler();
+	});
+};
+
+module.exports = {
+	spawnedKill,
+	spawnedCancel,
+	setupTimeout,
+	setExitHandler
+};
+
+
+/***/ }),
+/* 568 */,
+/* 569 */,
+/* 570 */
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Sprint = void 0;
+var Sprint = /** @class */ (function () {
+    function Sprint(client) {
+        this.client = client;
+    }
+    Sprint.prototype.createSprint = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                params = params || {};
+                request = {
+                    url: '/rest/agile/1.0/sprint',
+                    method: 'POST',
+                    data: __assign({}, params),
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Sprint.prototype.getSprint = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/agile/1.0/sprint/" + params.sprintId,
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Sprint.prototype.updateSprint = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/agile/1.0/sprint/" + params.sprintId,
+                    method: 'PUT',
+                    data: __assign(__assign({}, params), { sprintId: undefined }),
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Sprint.prototype.partiallyUpdateSprint = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/agile/1.0/sprint/" + params.sprintId,
+                    method: 'POST',
+                    data: __assign(__assign({}, params), { sprintId: undefined }),
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Sprint.prototype.deleteSprint = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/agile/1.0/sprint/" + params.sprintId,
+                    method: 'DELETE',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Sprint.prototype.getIssuesForSprint = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/agile/1.0/sprint/" + params.sprintId + "/issue",
+                    method: 'GET',
+                    params: {
+                        startAt: params.startAt,
+                        maxResults: params.maxResults,
+                        jql: params.jql,
+                        validateQuery: params.validateQuery,
+                        fields: params.fields && params.fields.join(','),
+                        expand: params.expand,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Sprint.prototype.moveIssuesToSprintAndRank = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/agile/1.0/sprint/" + params.sprintId + "/issue",
+                    method: 'POST',
+                    data: __assign(__assign({}, params), { sprintId: undefined }),
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Sprint.prototype.getPropertiesKeys = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/agile/1.0/sprint/" + params.sprintId + "/properties",
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Sprint.prototype.getProperty = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/agile/1.0/sprint/" + params.sprintId + "/properties/" + params.propertyKey,
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Sprint.prototype.setProperty = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/agile/1.0/sprint/" + params.sprintId + "/properties/" + params.propertyKey,
+                    method: 'PUT',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Sprint.prototype.deleteProperty = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/agile/1.0/sprint/" + params.sprintId + "/properties/" + params.propertyKey,
+                    method: 'DELETE',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Sprint.prototype.swapSprint = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/agile/1.0/sprint/" + params.sprintId + "/swap",
+                    method: 'POST',
+                    data: __assign(__assign({}, params), { sprintId: undefined }),
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    return Sprint;
+}());
+exports.Sprint = Sprint;
+
+
+/***/ }),
+/* 571 */,
+/* 572 */,
+/* 573 */,
+/* 574 */,
+/* 575 */,
+/* 576 */,
+/* 577 */,
+/* 578 */,
+/* 579 */,
+/* 580 */,
+/* 581 */,
+/* 582 */,
+/* 583 */,
+/* 584 */,
+/* 585 */,
+/* 586 */,
+/* 587 */,
+/* 588 */
+/***/ (function(module) {
+
+"use strict";
+
+
+module.exports = input => {
+	const LF = typeof input === 'string' ? '\n' : '\n'.charCodeAt();
+	const CR = typeof input === 'string' ? '\r' : '\r'.charCodeAt();
+
+	if (input[input.length - 1] === LF) {
+		input = input.slice(0, input.length - 1);
+	}
+
+	if (input[input.length - 1] === CR) {
+		input = input.slice(0, input.length - 1);
+	}
+
+	return input;
+};
+
+
+/***/ }),
+/* 589 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+"use strict";
+
+
+var utils = __webpack_require__(35);
+
+/**
+ * Transform the data for a request or a response
+ *
+ * @param {Object|String} data The data to be transformed
+ * @param {Array} headers The headers for the request or response
+ * @param {Array|Function} fns A single function or Array of functions
+ * @returns {*} The resulting transformed data
+ */
+module.exports = function transformData(data, headers, fns) {
+  /*eslint no-param-reassign:0*/
+  utils.forEach(fns, function transform(fn) {
+    data = fn(data, headers);
+  });
+
+  return data;
+};
+
+
+/***/ }),
+/* 590 */
+/***/ (function(module) {
+
+"use strict";
+
+
+/**
+ * Determines whether the specified URL is absolute
+ *
+ * @param {string} url The URL to test
+ * @returns {boolean} True if the specified URL is absolute, otherwise false
+ */
+module.exports = function isAbsoluteURL(url) {
+  // A URL is considered absolute if it begins with "<scheme>://" or "//" (protocol-relative URL).
+  // RFC 3986 defines scheme name as a sequence of characters beginning with a letter and followed
+  // by any combination of letters, digits, plus, period, or hyphen.
+  return /^([a-z][a-z\d\+\-\.]*:)?\/\//i.test(url);
+};
+
+
+/***/ }),
+/* 591 */,
+/* 592 */,
+/* 593 */,
+/* 594 */,
+/* 595 */,
+/* 596 */,
+/* 597 */
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.IssueTypes = void 0;
+var IssueTypes = /** @class */ (function () {
+    function IssueTypes(client) {
+        this.client = client;
+    }
+    IssueTypes.prototype.getAllIssueTypesForUser = function (callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: '/rest/api/2/issuetype',
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    IssueTypes.prototype.createIssueType = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: '/rest/api/2/issuetype',
+                    method: 'POST',
+                    data: {
+                        name: params.name,
+                        description: params.description,
+                        type: params.type,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    IssueTypes.prototype.getIssueType = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/issuetype/" + params.id,
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    IssueTypes.prototype.updateIssueType = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/issuetype/" + params.id,
+                    method: 'PUT',
+                    data: {
+                        name: params.name,
+                        description: params.description,
+                        avatarId: params.avatarId,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    IssueTypes.prototype.deleteIssueType = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/issuetype/" + params.id,
+                    method: 'DELETE',
+                    params: {
+                        alternativeIssueTypeId: params.alternativeIssueTypeId,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    IssueTypes.prototype.getAlternativeIssueTypes = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/issuetype/" + params.id + "/alternatives",
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    IssueTypes.prototype.loadIssueTypeAvatar = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/issuetype/" + params.id + "/avatar2",
+                    method: 'POST',
+                    params: {
+                        x: params.x,
+                        y: params.y,
+                        size: params.size,
+                    },
+                    data: __assign(__assign({}, params), { id: undefined, x: undefined, y: undefined, size: undefined }),
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    return IssueTypes;
+}());
+exports.IssueTypes = IssueTypes;
+
+
+/***/ }),
+/* 598 */,
+/* 599 */,
+/* 600 */,
+/* 601 */,
+/* 602 */,
+/* 603 */,
+/* 604 */,
+/* 605 */
+/***/ (function(module) {
+
+module.exports = require("http");
+
+/***/ }),
+/* 606 */,
+/* 607 */
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ProjectRoles = void 0;
+var ProjectRoles = /** @class */ (function () {
+    function ProjectRoles(client) {
+        this.client = client;
+    }
+    ProjectRoles.prototype.getProjectRolesForProject = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/project/" + params.projectIdOrKey + "/role",
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    ProjectRoles.prototype.getProjectRoleForProject = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/project/" + params.projectIdOrKey + "/role/" + params.id,
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    ProjectRoles.prototype.getProjectRoleDetails = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/project/" + params.projectIdOrKey + "/roledetails",
+                    method: 'GET',
+                    params: {
+                        currentMember: params.currentMember,
+                        excludeConnectAddons: params.excludeConnectAddons,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    ProjectRoles.prototype.getAllProjectRoles = function (callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: '/rest/api/2/role',
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    ProjectRoles.prototype.createProjectRole = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                params = params || {};
+                request = {
+                    url: '/rest/api/2/role',
+                    method: 'POST',
+                    data: {
+                        name: params.name,
+                        description: params.description,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    ProjectRoles.prototype.getProjectRoleById = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/role/" + params.id,
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    ProjectRoles.prototype.fullyUpdateProjectRole = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/role/" + params.id,
+                    method: 'PUT',
+                    data: {
+                        name: params.name,
+                        description: params.description,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    ProjectRoles.prototype.partialUpdateProjectRole = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/role/" + params.id,
+                    method: 'POST',
+                    data: {
+                        name: params.name,
+                        description: params.description,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    ProjectRoles.prototype.deleteProjectRole = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/role/" + params.id,
+                    method: 'DELETE',
+                    params: {
+                        swap: params.swap,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    return ProjectRoles;
+}());
+exports.ProjectRoles = ProjectRoles;
+
+
+/***/ }),
+/* 608 */,
+/* 609 */,
+/* 610 */,
+/* 611 */,
+/* 612 */,
+/* 613 */,
+/* 614 */
+/***/ (function(module) {
+
+module.exports = require("events");
+
+/***/ }),
+/* 615 */,
+/* 616 */,
+/* 617 */,
+/* 618 */,
+/* 619 */,
+/* 620 */,
+/* 621 */,
+/* 622 */
+/***/ (function(module) {
+
+module.exports = require("path");
+
+/***/ }),
+/* 623 */,
+/* 624 */
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ProjectComponents = void 0;
+var ProjectComponents = /** @class */ (function () {
+    function ProjectComponents(client) {
+        this.client = client;
+    }
+    ProjectComponents.prototype.createComponent = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                params = params || {};
+                request = {
+                    url: '/rest/api/2/component',
+                    method: 'POST',
+                    data: {
+                        self: params.self,
+                        id: params.id,
+                        name: params.name,
+                        description: params.description,
+                        lead: params.lead,
+                        leadUserName: params.leadUserName,
+                        leadAccountId: params.leadAccountId,
+                        assigneeType: params.assigneeType,
+                        assignee: params.assignee,
+                        realAssigneeType: params.realAssigneeType,
+                        realAssignee: params.realAssignee,
+                        isAssigneeTypeValid: params.isAssigneeTypeValid,
+                        project: params.project,
+                        projectId: params.projectId,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    ProjectComponents.prototype.getComponent = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/component/" + params.id,
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    ProjectComponents.prototype.updateComponent = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/component/" + params.id,
+                    method: 'PUT',
+                    data: {
+                        self: params.self,
+                        id: params.id,
+                        name: params.name,
+                        description: params.description,
+                        lead: params.lead,
+                        leadUserName: params.leadUserName,
+                        leadAccountId: params.leadAccountId,
+                        assigneeType: params.assigneeType,
+                        assignee: params.assignee,
+                        realAssigneeType: params.realAssigneeType,
+                        realAssignee: params.realAssignee,
+                        isAssigneeTypeValid: params.isAssigneeTypeValid,
+                        project: params.project,
+                        projectId: params.projectId,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    ProjectComponents.prototype.deleteComponent = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/component/" + params.id,
+                    method: 'DELETE',
+                    params: {
+                        moveIssuesTo: params.moveIssuesTo,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    ProjectComponents.prototype.getComponentIssuesCount = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/component/" + params.id + "/relatedIssueCounts",
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    ProjectComponents.prototype.getProjectComponentsPaginated = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/project/" + params.projectIdOrKey + "/component",
+                    method: 'GET',
+                    params: {
+                        startAt: params.startAt,
+                        maxResults: params.maxResults,
+                        orderBy: params.orderBy,
+                        query: params.query,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    ProjectComponents.prototype.getProjectComponents = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/project/" + params.projectIdOrKey + "/components",
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    return ProjectComponents;
+}());
+exports.ProjectComponents = ProjectComponents;
+
+
+/***/ }),
+/* 625 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+"use strict";
+
+const {PassThrough: PassThroughStream} = __webpack_require__(794);
+
+module.exports = options => {
+	options = {...options};
+
+	const {array} = options;
+	let {encoding} = options;
+	const isBuffer = encoding === 'buffer';
+	let objectMode = false;
+
+	if (array) {
+		objectMode = !(encoding || isBuffer);
+	} else {
+		encoding = encoding || 'utf8';
+	}
+
+	if (isBuffer) {
+		encoding = null;
+	}
+
+	const stream = new PassThroughStream({objectMode});
+
+	if (encoding) {
+		stream.setEncoding(encoding);
+	}
+
+	let length = 0;
+	const chunks = [];
+
+	stream.on('data', chunk => {
+		chunks.push(chunk);
+
+		if (objectMode) {
+			length = chunks.length;
+		} else {
+			length += chunk.length;
+		}
+	});
+
+	stream.getBufferedValue = () => {
+		if (array) {
+			return chunks;
+		}
+
+		return isBuffer ? Buffer.concat(chunks, length) : chunks.join('');
+	};
+
+	stream.getBufferedLength = () => length;
+
+	return stream;
+};
+
+
+/***/ }),
+/* 626 */,
+/* 627 */,
+/* 628 */,
+/* 629 */,
+/* 630 */,
+/* 631 */
+/***/ (function(module) {
+
+module.exports = require("net");
+
+/***/ }),
+/* 632 */
+/***/ (function(module) {
+
+/**
+ * Helpers.
+ */
+
+var s = 1000;
+var m = s * 60;
+var h = m * 60;
+var d = h * 24;
+var y = d * 365.25;
+
+/**
+ * Parse or format the given `val`.
+ *
+ * Options:
+ *
+ *  - `long` verbose formatting [false]
+ *
+ * @param {String|Number} val
+ * @param {Object} [options]
+ * @throws {Error} throw an error if val is not a non-empty string or a number
+ * @return {String|Number}
+ * @api public
+ */
+
+module.exports = function(val, options) {
+  options = options || {};
+  var type = typeof val;
+  if (type === 'string' && val.length > 0) {
+    return parse(val);
+  } else if (type === 'number' && isNaN(val) === false) {
+    return options.long ? fmtLong(val) : fmtShort(val);
+  }
+  throw new Error(
+    'val is not a non-empty string or a valid number. val=' +
+      JSON.stringify(val)
+  );
+};
+
+/**
+ * Parse the given `str` and return milliseconds.
+ *
+ * @param {String} str
+ * @return {Number}
+ * @api private
+ */
+
+function parse(str) {
+  str = String(str);
+  if (str.length > 100) {
+    return;
+  }
+  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(
+    str
+  );
+  if (!match) {
+    return;
+  }
+  var n = parseFloat(match[1]);
+  var type = (match[2] || 'ms').toLowerCase();
+  switch (type) {
+    case 'years':
+    case 'year':
+    case 'yrs':
+    case 'yr':
+    case 'y':
+      return n * y;
+    case 'days':
+    case 'day':
+    case 'd':
+      return n * d;
+    case 'hours':
+    case 'hour':
+    case 'hrs':
+    case 'hr':
+    case 'h':
+      return n * h;
+    case 'minutes':
+    case 'minute':
+    case 'mins':
+    case 'min':
+    case 'm':
+      return n * m;
+    case 'seconds':
+    case 'second':
+    case 'secs':
+    case 'sec':
+    case 's':
+      return n * s;
+    case 'milliseconds':
+    case 'millisecond':
+    case 'msecs':
+    case 'msec':
+    case 'ms':
+      return n;
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * Short format for `ms`.
+ *
+ * @param {Number} ms
+ * @return {String}
+ * @api private
+ */
+
+function fmtShort(ms) {
+  if (ms >= d) {
+    return Math.round(ms / d) + 'd';
+  }
+  if (ms >= h) {
+    return Math.round(ms / h) + 'h';
+  }
+  if (ms >= m) {
+    return Math.round(ms / m) + 'm';
+  }
+  if (ms >= s) {
+    return Math.round(ms / s) + 's';
+  }
+  return ms + 'ms';
+}
+
+/**
+ * Long format for `ms`.
+ *
+ * @param {Number} ms
+ * @return {String}
+ * @api private
+ */
+
+function fmtLong(ms) {
+  return plural(ms, d, 'day') ||
+    plural(ms, h, 'hour') ||
+    plural(ms, m, 'minute') ||
+    plural(ms, s, 'second') ||
+    ms + ' ms';
+}
+
+/**
+ * Pluralization helper.
+ */
+
+function plural(ms, n, name) {
+  if (ms < n) {
+    return;
+  }
+  if (ms < n * 1.5) {
+    return Math.floor(ms / n) + ' ' + name;
+  }
+  return Math.ceil(ms / n) + ' ' + name + 's';
+}
+
+
+/***/ }),
+/* 633 */,
+/* 634 */,
+/* 635 */,
+/* 636 */
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.IssueResolutions = void 0;
+var IssueResolutions = /** @class */ (function () {
+    function IssueResolutions(client) {
+        this.client = client;
+    }
+    IssueResolutions.prototype.getResolutions = function (callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: '/rest/api/2/resolution',
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    IssueResolutions.prototype.getResolution = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/resolution/" + params.id,
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    return IssueResolutions;
+}());
+exports.IssueResolutions = IssueResolutions;
+
+
+/***/ }),
+/* 637 */,
+/* 638 */,
+/* 639 */,
+/* 640 */,
+/* 641 */,
+/* 642 */,
+/* 643 */,
+/* 644 */,
+/* 645 */,
+/* 646 */,
+/* 647 */,
+/* 648 */,
+/* 649 */,
+/* 650 */,
+/* 651 */,
+/* 652 */
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(exports,"__esModule",{value:true});exports.getSignals=void 0;var _os=__webpack_require__(87);
+
+var _core=__webpack_require__(560);
+var _realtime=__webpack_require__(260);
+
+
+
+const getSignals=function(){
+const realtimeSignals=(0,_realtime.getRealtimeSignals)();
+const signals=[..._core.SIGNALS,...realtimeSignals].map(normalizeSignal);
+return signals;
+};exports.getSignals=getSignals;
+
+
+
+
+
+
+
+const normalizeSignal=function({
+name,
+number:defaultNumber,
+description,
+action,
+forced=false,
+standard})
+{
+const{
+signals:{[name]:constantSignal}}=
+_os.constants;
+const supported=constantSignal!==undefined;
+const number=supported?constantSignal:defaultNumber;
+return{name,number,description,supported,action,forced,standard};
+};
+//# sourceMappingURL=signals.js.map
+
+/***/ }),
+/* 653 */
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Users = void 0;
+var Users = /** @class */ (function () {
+    function Users(client) {
+        this.client = client;
+    }
+    Users.prototype.getUser = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                params = params || {};
+                request = {
+                    url: '/rest/api/2/user',
+                    method: 'GET',
+                    params: {
+                        accountId: params.accountId,
+                        username: params.username,
+                        key: params.key,
+                        expand: params.expand,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Users.prototype.createUser = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: '/rest/api/2/user',
+                    method: 'POST',
+                    data: __assign({}, params),
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Users.prototype.deleteUser = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: '/rest/api/2/user',
+                    method: 'DELETE',
+                    params: {
+                        accountId: params.accountId,
+                        username: params.username,
+                        key: params.key,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Users.prototype.bulkGetUsers = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: '/rest/api/2/user/bulk',
+                    method: 'GET',
+                    params: {
+                        startAt: params.startAt,
+                        maxResults: params.maxResults,
+                        username: params.username && params.username.join(','),
+                        key: params.key && params.key.join(','),
+                        accountId: params.accountId && params.accountId.join(','),
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Users.prototype.getAccountIdsForUsers = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                params = params || {};
+                request = {
+                    url: '/rest/api/2/user/bulk/migration',
+                    method: 'GET',
+                    params: {
+                        startAt: params.startAt,
+                        maxResults: params.maxResults,
+                        username: params.username && params.username.join(','),
+                        key: params.key && params.key.join(','),
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Users.prototype.getUserDefaultColumns = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                params = params || {};
+                request = {
+                    url: '/rest/api/2/user/columns',
+                    method: 'GET',
+                    params: {
+                        accountId: params.accountId,
+                        username: params.username,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Users.prototype.setUserDefaultColumns = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                params = params || {};
+                request = {
+                    url: '/rest/api/2/user/columns',
+                    method: 'PUT',
+                    params: {
+                        accountId: params.accountId,
+                    },
+                    data: __assign(__assign({}, params), { accountId: undefined }),
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Users.prototype.resetUserDefaultColumns = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                params = params || {};
+                request = {
+                    url: '/rest/api/2/user/columns',
+                    method: 'DELETE',
+                    params: {
+                        accountId: params.accountId,
+                        username: params.username,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Users.prototype.getUserEmail = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: '/rest/api/2/user/email',
+                    method: 'GET',
+                    params: {
+                        accountId: params.accountId,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Users.prototype.getUserEmailBulk = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: '/rest/api/2/user/email/bulk',
+                    method: 'GET',
+                    params: {
+                        accountId: params.accountId && params.accountId.join(','),
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Users.prototype.getUserGroups = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: '/rest/api/2/user/groups',
+                    method: 'GET',
+                    params: {
+                        accountId: params.accountId,
+                        username: params.username,
+                        key: params.key,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Users.prototype.getAllUsersDefault = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                params = params || {};
+                request = {
+                    url: '/rest/api/2/users',
+                    method: 'GET',
+                    params: {
+                        startAt: params.startAt,
+                        maxResults: params.maxResults,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Users.prototype.getAllUsers = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                params = params || {};
+                request = {
+                    url: '/rest/api/2/users/search',
+                    method: 'GET',
+                    params: {
+                        startAt: params.startAt,
+                        maxResults: params.maxResults,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    return Users;
+}());
+exports.Users = Users;
+
+
+/***/ }),
+/* 654 */
+/***/ (function(module) {
+
+// This is not the set of all possible signals.
+//
+// It IS, however, the set of all signals that trigger
+// an exit on either Linux or BSD systems.  Linux is a
+// superset of the signal names supported on BSD, and
+// the unknown signals just fail to register, so we can
+// catch that easily enough.
+//
+// Don't bother with SIGKILL.  It's uncatchable, which
+// means that we can't fire any callbacks anyway.
+//
+// If a user does happen to register a handler on a non-
+// fatal signal like SIGWINCH or something, and then
+// exit, it'll end up firing `process.emit('exit')`, so
+// the handler will be fired anyway.
+//
+// SIGBUS, SIGFPE, SIGSEGV and SIGILL, when not raised
+// artificially, inherently leave the process in a
+// state from which it is not safe to try and enter JS
+// listeners.
+module.exports = [
+  'SIGABRT',
+  'SIGALRM',
+  'SIGHUP',
+  'SIGINT',
+  'SIGTERM'
+]
+
+if (process.platform !== 'win32') {
+  module.exports.push(
+    'SIGVTALRM',
+    'SIGXCPU',
+    'SIGXFSZ',
+    'SIGUSR2',
+    'SIGTRAP',
+    'SIGSYS',
+    'SIGQUIT',
+    'SIGIOT'
+    // should detect profiler and enable/disable accordingly.
+    // see #21
+    // 'SIGPROF'
+  )
+}
+
+if (process.platform === 'linux') {
+  module.exports.push(
+    'SIGIO',
+    'SIGPOLL',
+    'SIGPWR',
+    'SIGSTKFLT',
+    'SIGUNUSED'
+  )
+}
+
+
+/***/ }),
+/* 655 */,
+/* 656 */,
+/* 657 */,
+/* 658 */,
+/* 659 */,
+/* 660 */,
+/* 661 */,
+/* 662 */,
+/* 663 */,
+/* 664 */
+/***/ (function(module) {
+
+"use strict";
+
+
+const isStream = stream =>
+	stream !== null &&
+	typeof stream === 'object' &&
+	typeof stream.pipe === 'function';
+
+isStream.writable = stream =>
+	isStream(stream) &&
+	stream.writable !== false &&
+	typeof stream._write === 'function' &&
+	typeof stream._writableState === 'object';
+
+isStream.readable = stream =>
+	isStream(stream) &&
+	stream.readable !== false &&
+	typeof stream._read === 'function' &&
+	typeof stream._readableState === 'object';
+
+isStream.duplex = stream =>
+	isStream.writable(stream) &&
+	isStream.readable(stream);
+
+isStream.transform = stream =>
+	isStream.duplex(stream) &&
+	typeof stream._transform === 'function' &&
+	typeof stream._transformState === 'object';
+
+module.exports = isStream;
+
+
+/***/ }),
+/* 665 */,
+/* 666 */
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AppProperties = void 0;
+var AppProperties = /** @class */ (function () {
+    function AppProperties(client) {
+        this.client = client;
+    }
+    AppProperties.prototype.getAppProperties = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/atlassian-connect/1/addons/" + params.addonKey + "/properties",
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    AppProperties.prototype.getAppProperty = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/atlassian-connect/1/addons/" + params.addonKey + "/properties/" + params.propertyKey,
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    AppProperties.prototype.setAppProperty = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/atlassian-connect/1/addons/" + params.addonKey + "/properties/" + params.propertyKey,
+                    method: 'PUT',
+                    data: __assign(__assign({}, params), { addonKey: undefined, propertyKey: undefined }),
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    AppProperties.prototype.deleteAppProperty = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/atlassian-connect/1/addons/" + params.addonKey + "/properties/" + params.propertyKey,
+                    method: 'DELETE',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    return AppProperties;
+}());
+exports.AppProperties = AppProperties;
+
+
+/***/ }),
+/* 667 */,
+/* 668 */,
+/* 669 */
+/***/ (function(module) {
+
+module.exports = require("util");
+
+/***/ }),
+/* 670 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+"use strict";
+
+
+var utils = __webpack_require__(35);
+var settle = __webpack_require__(564);
+var buildFullPath = __webpack_require__(960);
+var buildURL = __webpack_require__(133);
+var http = __webpack_require__(605);
+var https = __webpack_require__(211);
+var httpFollow = __webpack_require__(549).http;
+var httpsFollow = __webpack_require__(549).https;
+var url = __webpack_require__(835);
+var zlib = __webpack_require__(761);
+var pkg = __webpack_require__(361);
+var createError = __webpack_require__(26);
+var enhanceError = __webpack_require__(369);
+
+var isHttps = /https:?/;
+
+/*eslint consistent-return:0*/
+module.exports = function httpAdapter(config) {
+  return new Promise(function dispatchHttpRequest(resolvePromise, rejectPromise) {
+    var resolve = function resolve(value) {
+      resolvePromise(value);
+    };
+    var reject = function reject(value) {
+      rejectPromise(value);
+    };
+    var data = config.data;
+    var headers = config.headers;
+
+    // Set User-Agent (required by some servers)
+    // Only set header if it hasn't been set in config
+    // See https://github.com/axios/axios/issues/69
+    if (!headers['User-Agent'] && !headers['user-agent']) {
+      headers['User-Agent'] = 'axios/' + pkg.version;
+    }
+
+    if (data && !utils.isStream(data)) {
+      if (Buffer.isBuffer(data)) {
+        // Nothing to do...
+      } else if (utils.isArrayBuffer(data)) {
+        data = Buffer.from(new Uint8Array(data));
+      } else if (utils.isString(data)) {
+        data = Buffer.from(data, 'utf-8');
+      } else {
+        return reject(createError(
+          'Data after transformation must be a string, an ArrayBuffer, a Buffer, or a Stream',
+          config
+        ));
+      }
+
+      // Add Content-Length header if data exists
+      headers['Content-Length'] = data.length;
+    }
+
+    // HTTP basic authentication
+    var auth = undefined;
+    if (config.auth) {
+      var username = config.auth.username || '';
+      var password = config.auth.password || '';
+      auth = username + ':' + password;
+    }
+
+    // Parse url
+    var fullPath = buildFullPath(config.baseURL, config.url);
+    var parsed = url.parse(fullPath);
+    var protocol = parsed.protocol || 'http:';
+
+    if (!auth && parsed.auth) {
+      var urlAuth = parsed.auth.split(':');
+      var urlUsername = urlAuth[0] || '';
+      var urlPassword = urlAuth[1] || '';
+      auth = urlUsername + ':' + urlPassword;
+    }
+
+    if (auth) {
+      delete headers.Authorization;
+    }
+
+    var isHttpsRequest = isHttps.test(protocol);
+    var agent = isHttpsRequest ? config.httpsAgent : config.httpAgent;
+
+    var options = {
+      path: buildURL(parsed.path, config.params, config.paramsSerializer).replace(/^\?/, ''),
+      method: config.method.toUpperCase(),
+      headers: headers,
+      agent: agent,
+      agents: { http: config.httpAgent, https: config.httpsAgent },
+      auth: auth
+    };
+
+    if (config.socketPath) {
+      options.socketPath = config.socketPath;
+    } else {
+      options.hostname = parsed.hostname;
+      options.port = parsed.port;
+    }
+
+    var proxy = config.proxy;
+    if (!proxy && proxy !== false) {
+      var proxyEnv = protocol.slice(0, -1) + '_proxy';
+      var proxyUrl = process.env[proxyEnv] || process.env[proxyEnv.toUpperCase()];
+      if (proxyUrl) {
+        var parsedProxyUrl = url.parse(proxyUrl);
+        var noProxyEnv = process.env.no_proxy || process.env.NO_PROXY;
+        var shouldProxy = true;
+
+        if (noProxyEnv) {
+          var noProxy = noProxyEnv.split(',').map(function trim(s) {
+            return s.trim();
+          });
+
+          shouldProxy = !noProxy.some(function proxyMatch(proxyElement) {
+            if (!proxyElement) {
+              return false;
+            }
+            if (proxyElement === '*') {
+              return true;
+            }
+            if (proxyElement[0] === '.' &&
+                parsed.hostname.substr(parsed.hostname.length - proxyElement.length) === proxyElement) {
+              return true;
+            }
+
+            return parsed.hostname === proxyElement;
+          });
+        }
+
+
+        if (shouldProxy) {
+          proxy = {
+            host: parsedProxyUrl.hostname,
+            port: parsedProxyUrl.port
+          };
+
+          if (parsedProxyUrl.auth) {
+            var proxyUrlAuth = parsedProxyUrl.auth.split(':');
+            proxy.auth = {
+              username: proxyUrlAuth[0],
+              password: proxyUrlAuth[1]
+            };
+          }
+        }
+      }
+    }
+
+    if (proxy) {
+      options.hostname = proxy.host;
+      options.host = proxy.host;
+      options.headers.host = parsed.hostname + (parsed.port ? ':' + parsed.port : '');
+      options.port = proxy.port;
+      options.path = protocol + '//' + parsed.hostname + (parsed.port ? ':' + parsed.port : '') + options.path;
+
+      // Basic proxy authorization
+      if (proxy.auth) {
+        var base64 = Buffer.from(proxy.auth.username + ':' + proxy.auth.password, 'utf8').toString('base64');
+        options.headers['Proxy-Authorization'] = 'Basic ' + base64;
+      }
+    }
+
+    var transport;
+    var isHttpsProxy = isHttpsRequest && (proxy ? isHttps.test(proxy.protocol) : true);
+    if (config.transport) {
+      transport = config.transport;
+    } else if (config.maxRedirects === 0) {
+      transport = isHttpsProxy ? https : http;
+    } else {
+      if (config.maxRedirects) {
+        options.maxRedirects = config.maxRedirects;
+      }
+      transport = isHttpsProxy ? httpsFollow : httpFollow;
+    }
+
+    if (config.maxContentLength && config.maxContentLength > -1) {
+      options.maxBodyLength = config.maxContentLength;
+    }
+
+    // Create the request
+    var req = transport.request(options, function handleResponse(res) {
+      if (req.aborted) return;
+
+      // uncompress the response body transparently if required
+      var stream = res;
+      switch (res.headers['content-encoding']) {
+      /*eslint default-case:0*/
+      case 'gzip':
+      case 'compress':
+      case 'deflate':
+        // add the unzipper to the body stream processing pipeline
+        stream = (res.statusCode === 204) ? stream : stream.pipe(zlib.createUnzip());
+
+        // remove the content-encoding in order to not confuse downstream operations
+        delete res.headers['content-encoding'];
+        break;
+      }
+
+      // return the last request in case of redirects
+      var lastRequest = res.req || req;
+
+      var response = {
+        status: res.statusCode,
+        statusText: res.statusMessage,
+        headers: res.headers,
+        config: config,
+        request: lastRequest
+      };
+
+      if (config.responseType === 'stream') {
+        response.data = stream;
+        settle(resolve, reject, response);
+      } else {
+        var responseBuffer = [];
+        stream.on('data', function handleStreamData(chunk) {
+          responseBuffer.push(chunk);
+
+          // make sure the content length is not over the maxContentLength if specified
+          if (config.maxContentLength > -1 && Buffer.concat(responseBuffer).length > config.maxContentLength) {
+            stream.destroy();
+            reject(createError('maxContentLength size of ' + config.maxContentLength + ' exceeded',
+              config, null, lastRequest));
+          }
+        });
+
+        stream.on('error', function handleStreamError(err) {
+          if (req.aborted) return;
+          reject(enhanceError(err, config, null, lastRequest));
+        });
+
+        stream.on('end', function handleStreamEnd() {
+          var responseData = Buffer.concat(responseBuffer);
+          if (config.responseType !== 'arraybuffer') {
+            responseData = responseData.toString(config.responseEncoding);
+          }
+
+          response.data = responseData;
+          settle(resolve, reject, response);
+        });
+      }
+    });
+
+    // Handle errors
+    req.on('error', function handleRequestError(err) {
+      if (req.aborted) return;
+      reject(enhanceError(err, config, null, req));
+    });
+
+    // Handle request timeout
+    if (config.timeout) {
+      // Sometime, the response will be very slow, and does not respond, the connect event will be block by event loop system.
+      // And timer callback will be fired, and abort() will be invoked before connection, then get "socket hang up" and code ECONNRESET.
+      // At this time, if we have a large number of request, nodejs will hang up some socket on background. and the number will up and up.
+      // And then these socket which be hang up will devoring CPU little by little.
+      // ClientRequest.setTimeout will be fired on the specify milliseconds, and can make sure that abort() will be fired after connect.
+      req.setTimeout(config.timeout, function handleRequestTimeout() {
+        req.abort();
+        reject(createError('timeout of ' + config.timeout + 'ms exceeded', config, 'ECONNABORTED', req));
+      });
+    }
+
+    if (config.cancelToken) {
+      // Handle cancellation
+      config.cancelToken.promise.then(function onCanceled(cancel) {
+        if (req.aborted) return;
+
+        req.abort();
+        reject(cancel);
+      });
+    }
+
+    // Send the request
+    if (utils.isStream(data)) {
+      data.on('error', function handleStreamError(err) {
+        reject(enhanceError(err, config, null, req));
+      }).pipe(req);
+    } else {
+      req.end(data);
+    }
+  });
+};
+
+
+/***/ }),
+/* 671 */,
+/* 672 */,
+/* 673 */
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.WorkflowSchemeDrafts = void 0;
+var WorkflowSchemeDrafts = /** @class */ (function () {
+    function WorkflowSchemeDrafts(client) {
+        this.client = client;
+    }
+    WorkflowSchemeDrafts.prototype.createDraftWorkflowScheme = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/workflowscheme/" + params.id + "/createdraft",
+                    method: 'POST',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    WorkflowSchemeDrafts.prototype.getDraftWorkflowScheme = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/workflowscheme/" + params.id + "/draft",
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    WorkflowSchemeDrafts.prototype.updateDraftWorkflowScheme = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/workflowscheme/" + params.id + "/draft",
+                    method: 'PUT',
+                    data: {
+                        id: params.id,
+                        name: params.name,
+                        description: params.description,
+                        defaultWorkflow: params.defaultWorkflow,
+                        issueTypeMappings: params.issueTypeMappings,
+                        originalDefaultWorkflow: params.originalDefaultWorkflow,
+                        originalIssueTypeMappings: params.originalIssueTypeMappings,
+                        draft: params.draft,
+                        lastModifiedUser: params.lastModifiedUser,
+                        lastModified: params.lastModified,
+                        self: params.self,
+                        updateDraftIfNeeded: params.updateDraftIfNeeded,
+                        issueTypes: params.issueTypes,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    WorkflowSchemeDrafts.prototype.deleteDraftWorkflowScheme = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/workflowscheme/" + params.id + "/draft",
+                    method: 'DELETE',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    WorkflowSchemeDrafts.prototype.getDraftDefaultWorkflow = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/workflowscheme/" + params.id + "/draft/default",
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    WorkflowSchemeDrafts.prototype.updateDraftDefaultWorkflow = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/workflowscheme/" + params.id + "/draft/default",
+                    method: 'PUT',
+                    data: {
+                        workflow: params.workflow,
+                        updateDraftIfNeeded: params.updateDraftIfNeeded,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    WorkflowSchemeDrafts.prototype.deleteDraftDefaultWorkflow = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/workflowscheme/" + params.id + "/draft/default",
+                    method: 'DELETE',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    WorkflowSchemeDrafts.prototype.getWorkflowForIssueTypeInDraftWorkflowScheme = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/workflowscheme/" + params.id + "/draft/issuetype/" + params.issueType,
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    WorkflowSchemeDrafts.prototype.setWorkflowForIssueTypeInDraftWorkflowScheme = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/workflowscheme/" + params.id + "/draft/issuetype/" + params.issueType,
+                    method: 'PUT',
+                    data: {
+                        issueType: params.issueType,
+                        workflow: params.workflow,
+                        updateDraftIfNeeded: params.updateDraftIfNeeded,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    WorkflowSchemeDrafts.prototype.deleteWorkflowForIssueTypeInDraftWorkflowScheme = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/workflowscheme/" + params.id + "/draft/issuetype/" + params.issueType,
+                    method: 'DELETE',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    WorkflowSchemeDrafts.prototype.getIssueTypesForWorkflowsInDraftWorkflowScheme = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/workflowscheme/" + params.id + "/draft/workflow",
+                    method: 'GET',
+                    params: {
+                        workflowName: params.workflowName,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    WorkflowSchemeDrafts.prototype.setIssueTypesForWorkflowInWorkflowScheme = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/workflowscheme/" + params.id + "/draft/workflow",
+                    method: 'PUT',
+                    params: {
+                        workflowName: params.workflowName,
+                    },
+                    data: {
+                        workflow: params.workflow,
+                        issueTypes: params.issueTypes,
+                        defaultMapping: params.defaultMapping,
+                        updateDraftIfNeeded: params.updateDraftIfNeeded,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    WorkflowSchemeDrafts.prototype.deleteIssueTypesForWorkflowInDraftWorkflowScheme = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/workflowscheme/" + params.id + "/draft/workflow",
+                    method: 'DELETE',
+                    params: {
+                        workflowName: params.workflowName,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    return WorkflowSchemeDrafts;
+}());
+exports.WorkflowSchemeDrafts = WorkflowSchemeDrafts;
+
+
+/***/ }),
+/* 674 */,
+/* 675 */,
+/* 676 */,
+/* 677 */,
+/* 678 */,
+/* 679 */
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.IssueCommentProperties = void 0;
+var IssueCommentProperties = /** @class */ (function () {
+    function IssueCommentProperties(client) {
+        this.client = client;
+    }
+    IssueCommentProperties.prototype.getCommentPropertyKeys = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/comment/" + params.commentId + "/properties",
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    IssueCommentProperties.prototype.getCommentProperty = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/comment/" + params.commentId + "/properties/" + params.propertyKey,
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    IssueCommentProperties.prototype.setCommentProperty = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/comment/" + params.commentId + "/properties/" + params.propertyKey,
+                    method: 'PUT',
+                    data: __assign(__assign({}, params), { commentId: undefined, propertyKey: undefined }),
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    IssueCommentProperties.prototype.deleteCommentProperty = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/comment/" + params.commentId + "/properties/" + params.propertyKey,
+                    method: 'DELETE',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    return IssueCommentProperties;
+}());
+exports.IssueCommentProperties = IssueCommentProperties;
+
+
+/***/ }),
+/* 680 */,
+/* 681 */,
+/* 682 */,
+/* 683 */,
+/* 684 */,
+/* 685 */,
+/* 686 */,
+/* 687 */,
+/* 688 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+"use strict";
+
+
+var utils = __webpack_require__(35);
+
+module.exports = (
+  utils.isStandardBrowserEnv() ?
+
+  // Standard browser envs have full support of the APIs needed to test
+  // whether the request URL is of the same origin as current location.
+    (function standardBrowserEnv() {
+      var msie = /(msie|trident)/i.test(navigator.userAgent);
+      var urlParsingNode = document.createElement('a');
+      var originURL;
+
+      /**
+    * Parse a URL to discover it's components
+    *
+    * @param {String} url The URL to be parsed
+    * @returns {Object}
+    */
+      function resolveURL(url) {
+        var href = url;
+
+        if (msie) {
+        // IE needs attribute set twice to normalize properties
+          urlParsingNode.setAttribute('href', href);
+          href = urlParsingNode.href;
+        }
+
+        urlParsingNode.setAttribute('href', href);
+
+        // urlParsingNode provides the UrlUtils interface - http://url.spec.whatwg.org/#urlutils
+        return {
+          href: urlParsingNode.href,
+          protocol: urlParsingNode.protocol ? urlParsingNode.protocol.replace(/:$/, '') : '',
+          host: urlParsingNode.host,
+          search: urlParsingNode.search ? urlParsingNode.search.replace(/^\?/, '') : '',
+          hash: urlParsingNode.hash ? urlParsingNode.hash.replace(/^#/, '') : '',
+          hostname: urlParsingNode.hostname,
+          port: urlParsingNode.port,
+          pathname: (urlParsingNode.pathname.charAt(0) === '/') ?
+            urlParsingNode.pathname :
+            '/' + urlParsingNode.pathname
+        };
+      }
+
+      originURL = resolveURL(window.location.href);
+
+      /**
+    * Determine if a URL shares the same origin as the current location
+    *
+    * @param {String} requestURL The URL to test
+    * @returns {boolean} True if URL shares the same origin, otherwise false
+    */
+      return function isURLSameOrigin(requestURL) {
+        var parsed = (utils.isString(requestURL)) ? resolveURL(requestURL) : requestURL;
+        return (parsed.protocol === originURL.protocol &&
+            parsed.host === originURL.host);
+      };
+    })() :
+
+  // Non standard browser envs (web workers, react-native) lack needed support.
+    (function nonStandardBrowserEnv() {
+      return function isURLSameOrigin() {
+        return true;
+      };
+    })()
+);
+
+
+/***/ }),
+/* 689 */,
+/* 690 */,
+/* 691 */,
+/* 692 */
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+class Deprecation extends Error {
+  constructor(message) {
+    super(message); // Maintains proper stack trace (only available on V8)
+
+    /* istanbul ignore next */
+
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    }
+
+    this.name = 'Deprecation';
+  }
+
+}
+
+exports.Deprecation = Deprecation;
+
+
+/***/ }),
+/* 693 */,
+/* 694 */,
+/* 695 */,
+/* 696 */
+/***/ (function(module) {
+
+"use strict";
+
+
+/*!
+ * is-plain-object <https://github.com/jonschlinkert/is-plain-object>
+ *
+ * Copyright (c) 2014-2017, Jon Schlinkert.
+ * Released under the MIT License.
+ */
+
+function isObject(o) {
+  return Object.prototype.toString.call(o) === '[object Object]';
+}
+
+function isPlainObject(o) {
+  var ctor,prot;
+
+  if (isObject(o) === false) return false;
+
+  // If has modified constructor
+  ctor = o.constructor;
+  if (ctor === undefined) return true;
+
+  // If has modified prototype
+  prot = ctor.prototype;
+  if (isObject(prot) === false) return false;
+
+  // If constructor does not have an Object-specific method
+  if (prot.hasOwnProperty('isPrototypeOf') === false) {
+    return false;
+  }
+
+  // Most likely a plain Object
+  return true;
+}
+
+module.exports = isPlainObject;
+
+
+/***/ }),
+/* 697 */,
+/* 698 */
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DynamicModules = void 0;
+var DynamicModules = /** @class */ (function () {
+    function DynamicModules(client) {
+        this.client = client;
+    }
+    DynamicModules.prototype.getModules = function (callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: '/rest/atlassian-connect/1/app/module/dynamic',
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    DynamicModules.prototype.registerModules = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: '/rest/atlassian-connect/1/app/module/dynamic',
+                    method: 'POST',
+                    data: __assign({}, params),
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    DynamicModules.prototype.removeModules = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                params = params || {};
+                request = {
+                    url: '/rest/atlassian-connect/1/app/module/dynamic',
+                    method: 'DELETE',
+                    params: {
+                        moduleKey: params.moduleKey && params.moduleKey.join(','),
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    return DynamicModules;
+}());
+exports.DynamicModules = DynamicModules;
+
+
+/***/ }),
+/* 699 */,
+/* 700 */
+/***/ (function(module) {
+
+/*!
+ * jsUri
+ * https://github.com/derek-watson/jsUri
+ *
+ * Copyright 2013, Derek Watson
+ * Released under the MIT license.
+ *
+ * Includes parseUri regular expressions
+ * http://blog.stevenlevithan.com/archives/parseuri
+ * Copyright 2007, Steven Levithan
+ * Released under the MIT license.
+ */
+
+ /*globals define, module */
+
+(function(global) {
+
+  var re = {
+    starts_with_slashes: /^\/+/,
+    ends_with_slashes: /\/+$/,
+    pluses: /\+/g,
+    query_separator: /[&;]/,
+    uri_parser: /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@\/]*)(?::([^:@]*))?)?@)?(\[[0-9a-fA-F:.]+\]|[^:\/?#]*)(?::(\d+|(?=:)))?(:)?)((((?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+  };
+
+  /**
+   * Define forEach for older js environments
+   * @see https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/forEach#Compatibility
+   */
+  if (!Array.prototype.forEach) {
+    Array.prototype.forEach = function(callback, thisArg) {
+      var T, k;
+
+      if (this == null) {
+        throw new TypeError(' this is null or not defined');
+      }
+
+      var O = Object(this);
+      var len = O.length >>> 0;
+
+      if (typeof callback !== "function") {
+        throw new TypeError(callback + ' is not a function');
+      }
+
+      if (arguments.length > 1) {
+        T = thisArg;
+      }
+
+      k = 0;
+
+      while (k < len) {
+        var kValue;
+        if (k in O) {
+          kValue = O[k];
+          callback.call(T, kValue, k, O);
+        }
+        k++;
+      }
+    };
+  }
+
+  /**
+   * unescape a query param value
+   * @param  {string} s encoded value
+   * @return {string}   decoded value
+   */
+  function decode(s) {
+    if (s) {
+        s = s.toString().replace(re.pluses, '%20');
+        s = decodeURIComponent(s);
+    }
+    return s;
+  }
+
+  /**
+   * Breaks a uri string down into its individual parts
+   * @param  {string} str uri
+   * @return {object}     parts
+   */
+  function parseUri(str) {
+    var parser = re.uri_parser;
+    var parserKeys = ["source", "protocol", "authority", "userInfo", "user", "password", "host", "port", "isColonUri", "relative", "path", "directory", "file", "query", "anchor"];
+    var m = parser.exec(str || '');
+    var parts = {};
+
+    parserKeys.forEach(function(key, i) {
+      parts[key] = m[i] || '';
+    });
+
+    return parts;
+  }
+
+  /**
+   * Breaks a query string down into an array of key/value pairs
+   * @param  {string} str query
+   * @return {array}      array of arrays (key/value pairs)
+   */
+  function parseQuery(str) {
+    var i, ps, p, n, k, v, l;
+    var pairs = [];
+
+    if (typeof(str) === 'undefined' || str === null || str === '') {
+      return pairs;
+    }
+
+    if (str.indexOf('?') === 0) {
+      str = str.substring(1);
+    }
+
+    ps = str.toString().split(re.query_separator);
+
+    for (i = 0, l = ps.length; i < l; i++) {
+      p = ps[i];
+      n = p.indexOf('=');
+
+      if (n !== 0) {
+        k = decode(p.substring(0, n));
+        v = decode(p.substring(n + 1));
+        pairs.push(n === -1 ? [p, null] : [k, v]);
+      }
+
+    }
+    return pairs;
+  }
+
+  /**
+   * Creates a new Uri object
+   * @constructor
+   * @param {string} str
+   */
+  function Uri(str) {
+    this.uriParts = parseUri(str);
+    this.queryPairs = parseQuery(this.uriParts.query);
+    this.hasAuthorityPrefixUserPref = null;
+  }
+
+  /**
+   * Define getter/setter methods
+   */
+  ['protocol', 'userInfo', 'host', 'port', 'path', 'anchor'].forEach(function(key) {
+    Uri.prototype[key] = function(val) {
+      if (typeof val !== 'undefined') {
+        this.uriParts[key] = val;
+      }
+      return this.uriParts[key];
+    };
+  });
+
+  /**
+   * if there is no protocol, the leading // can be enabled or disabled
+   * @param  {Boolean}  val
+   * @return {Boolean}
+   */
+  Uri.prototype.hasAuthorityPrefix = function(val) {
+    if (typeof val !== 'undefined') {
+      this.hasAuthorityPrefixUserPref = val;
+    }
+
+    if (this.hasAuthorityPrefixUserPref === null) {
+      return (this.uriParts.source.indexOf('//') !== -1);
+    } else {
+      return this.hasAuthorityPrefixUserPref;
+    }
+  };
+
+  Uri.prototype.isColonUri = function (val) {
+    if (typeof val !== 'undefined') {
+      this.uriParts.isColonUri = !!val;
+    } else {
+      return !!this.uriParts.isColonUri;
+    }
+  };
+
+  /**
+   * Serializes the internal state of the query pairs
+   * @param  {string} [val]   set a new query string
+   * @return {string}         query string
+   */
+  Uri.prototype.query = function(val) {
+    var s = '', i, param, l;
+
+    if (typeof val !== 'undefined') {
+      this.queryPairs = parseQuery(val);
+    }
+
+    for (i = 0, l = this.queryPairs.length; i < l; i++) {
+      param = this.queryPairs[i];
+      if (s.length > 0) {
+        s += '&';
+      }
+      if (param[1] === null) {
+        s += param[0];
+      } else {
+        s += param[0];
+        s += '=';
+        if (typeof param[1] !== 'undefined') {
+          s += encodeURIComponent(param[1]);
+        }
+      }
+    }
+    return s.length > 0 ? '?' + s : s;
+  };
+
+  /**
+   * returns the first query param value found for the key
+   * @param  {string} key query key
+   * @return {string}     first value found for key
+   */
+  Uri.prototype.getQueryParamValue = function (key) {
+    var param, i, l;
+    for (i = 0, l = this.queryPairs.length; i < l; i++) {
+      param = this.queryPairs[i];
+      if (key === param[0]) {
+        return param[1];
+      }
+    }
+  };
+
+  /**
+   * returns an array of query param values for the key
+   * @param  {string} key query key
+   * @return {array}      array of values
+   */
+  Uri.prototype.getQueryParamValues = function (key) {
+    var arr = [], i, param, l;
+    for (i = 0, l = this.queryPairs.length; i < l; i++) {
+      param = this.queryPairs[i];
+      if (key === param[0]) {
+        arr.push(param[1]);
+      }
+    }
+    return arr;
+  };
+
+  /**
+   * removes query parameters
+   * @param  {string} key     remove values for key
+   * @param  {val}    [val]   remove a specific value, otherwise removes all
+   * @return {Uri}            returns self for fluent chaining
+   */
+  Uri.prototype.deleteQueryParam = function (key, val) {
+    var arr = [], i, param, keyMatchesFilter, valMatchesFilter, l;
+
+    for (i = 0, l = this.queryPairs.length; i < l; i++) {
+
+      param = this.queryPairs[i];
+      keyMatchesFilter = decode(param[0]) === decode(key);
+      valMatchesFilter = param[1] === val;
+
+      if ((arguments.length === 1 && !keyMatchesFilter) || (arguments.length === 2 && (!keyMatchesFilter || !valMatchesFilter))) {
+        arr.push(param);
+      }
+    }
+
+    this.queryPairs = arr;
+
+    return this;
+  };
+
+  /**
+   * adds a query parameter
+   * @param  {string}  key        add values for key
+   * @param  {string}  val        value to add
+   * @param  {integer} [index]    specific index to add the value at
+   * @return {Uri}                returns self for fluent chaining
+   */
+  Uri.prototype.addQueryParam = function (key, val, index) {
+    if (arguments.length === 3 && index !== -1) {
+      index = Math.min(index, this.queryPairs.length);
+      this.queryPairs.splice(index, 0, [key, val]);
+    } else if (arguments.length > 0) {
+      this.queryPairs.push([key, val]);
+    }
+    return this;
+  };
+
+  /**
+   * test for the existence of a query parameter
+   * @param  {string}  key        add values for key
+   * @param  {string}  val        value to add
+   * @param  {integer} [index]    specific index to add the value at
+   * @return {Uri}                returns self for fluent chaining
+   */
+  Uri.prototype.hasQueryParam = function (key) {
+    var i, len = this.queryPairs.length;
+    for (i = 0; i < len; i++) {
+      if (this.queryPairs[i][0] == key)
+        return true;
+    }
+    return false;
+  };
+
+  /**
+   * replaces query param values
+   * @param  {string} key         key to replace value for
+   * @param  {string} newVal      new value
+   * @param  {string} [oldVal]    replace only one specific value (otherwise replaces all)
+   * @return {Uri}                returns self for fluent chaining
+   */
+  Uri.prototype.replaceQueryParam = function (key, newVal, oldVal) {
+    var index = -1, len = this.queryPairs.length, i, param;
+
+    if (arguments.length === 3) {
+      for (i = 0; i < len; i++) {
+        param = this.queryPairs[i];
+        if (decode(param[0]) === decode(key) && decodeURIComponent(param[1]) === decode(oldVal)) {
+          index = i;
+          break;
+        }
+      }
+      if (index >= 0) {
+        this.deleteQueryParam(key, decode(oldVal)).addQueryParam(key, newVal, index);
+      }
+    } else {
+      for (i = 0; i < len; i++) {
+        param = this.queryPairs[i];
+        if (decode(param[0]) === decode(key)) {
+          index = i;
+          break;
+        }
+      }
+      this.deleteQueryParam(key);
+      this.addQueryParam(key, newVal, index);
+    }
+    return this;
+  };
+
+  /**
+   * Define fluent setter methods (setProtocol, setHasAuthorityPrefix, etc)
+   */
+  ['protocol', 'hasAuthorityPrefix', 'isColonUri', 'userInfo', 'host', 'port', 'path', 'query', 'anchor'].forEach(function(key) {
+    var method = 'set' + key.charAt(0).toUpperCase() + key.slice(1);
+    Uri.prototype[method] = function(val) {
+      this[key](val);
+      return this;
+    };
+  });
+
+  /**
+   * Scheme name, colon and doubleslash, as required
+   * @return {string} http:// or possibly just //
+   */
+  Uri.prototype.scheme = function() {
+    var s = '';
+
+    if (this.protocol()) {
+      s += this.protocol();
+      if (this.protocol().indexOf(':') !== this.protocol().length - 1) {
+        s += ':';
+      }
+      s += '//';
+    } else {
+      if (this.hasAuthorityPrefix() && this.host()) {
+        s += '//';
+      }
+    }
+
+    return s;
+  };
+
+  /**
+   * Same as Mozilla nsIURI.prePath
+   * @return {string} scheme://user:password@host:port
+   * @see  https://developer.mozilla.org/en/nsIURI
+   */
+  Uri.prototype.origin = function() {
+    var s = this.scheme();
+
+    if (this.userInfo() && this.host()) {
+      s += this.userInfo();
+      if (this.userInfo().indexOf('@') !== this.userInfo().length - 1) {
+        s += '@';
+      }
+    }
+
+    if (this.host()) {
+      s += this.host();
+      if (this.port() || (this.path() && this.path().substr(0, 1).match(/[0-9]/))) {
+        s += ':' + this.port();
+      }
+    }
+
+    return s;
+  };
+
+  /**
+   * Adds a trailing slash to the path
+   */
+  Uri.prototype.addTrailingSlash = function() {
+    var path = this.path() || '';
+
+    if (path.substr(-1) !== '/') {
+      this.path(path + '/');
+    }
+
+    return this;
+  };
+
+  /**
+   * Serializes the internal state of the Uri object
+   * @return {string}
+   */
+  Uri.prototype.toString = function() {
+    var path, s = this.origin();
+
+    if (this.isColonUri()) {
+      if (this.path()) {
+        s += ':'+this.path();
+      }
+    } else if (this.path()) {
+      path = this.path();
+      if (!(re.ends_with_slashes.test(s) || re.starts_with_slashes.test(path))) {
+        s += '/';
+      } else {
+        if (s) {
+          s.replace(re.ends_with_slashes, '/');
+        }
+        path = path.replace(re.starts_with_slashes, '/');
+      }
+      s += path;
+    } else {
+      if (this.host() && (this.query().toString() || this.anchor())) {
+        s += '/';
+      }
+    }
+    if (this.query().toString()) {
+      s += this.query().toString();
+    }
+
+    if (this.anchor()) {
+      if (this.anchor().indexOf('#') !== 0) {
+        s += '#';
+      }
+      s += this.anchor();
+    }
+
+    return s;
+  };
+
+  /**
+   * Clone a Uri object
+   * @return {Uri} duplicate copy of the Uri
+   */
+  Uri.prototype.clone = function() {
+    return new Uri(this.toString());
+  };
+
+  /**
+   * export via AMD or CommonJS, otherwise leak a global
+   */
+  if (typeof define === 'function' && define.amd) {
+    define(function() {
+      return Uri;
+    });
+  } else if ( true && typeof module.exports !== 'undefined') {
+    module.exports = Uri;
+  } else {
+    global.Uri = Uri;
+  }
+}(this));
+
+
+/***/ }),
+/* 701 */,
+/* 702 */,
+/* 703 */
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.IssueAttachments = void 0;
+var IssueAttachments = /** @class */ (function () {
+    function IssueAttachments(client) {
+        this.client = client;
+    }
+    IssueAttachments.prototype.getJiraAttachmentSettings = function (callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: '/rest/api/2/attachment/meta',
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    IssueAttachments.prototype.getAttachmentMetadata = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/attachment/" + params.id,
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    IssueAttachments.prototype.deleteAttachment = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/attachment/" + params.id,
+                    method: 'DELETE',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    IssueAttachments.prototype.getAllMetadataForAnExpandedAttachment = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/attachment/" + params.id + "/expand/human",
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    IssueAttachments.prototype.getContentsMetadataForAnExpandedAttachment = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/attachment/" + params.id + "/expand/raw",
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    IssueAttachments.prototype.addAttachment = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/issue/" + params.issueIdOrKey + "/attachments",
+                    method: 'POST',
+                    data: __assign(__assign({}, params), { issueIdOrKey: undefined }),
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    return IssueAttachments;
+}());
+exports.IssueAttachments = IssueAttachments;
+
+
+/***/ }),
+/* 704 */,
+/* 705 */,
+/* 706 */,
+/* 707 */,
+/* 708 */,
+/* 709 */,
+/* 710 */,
+/* 711 */,
+/* 712 */,
+/* 713 */,
 /* 714 */,
 /* 715 */,
 /* 716 */
@@ -19728,20 +19519,17 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const util_1 = __webpack_require__(669);
-const jira_js_1 = __webpack_require__(364);
-const execa_1 = __webpack_require__(955);
-const core_1 = __importDefault(__webpack_require__(470));
 //const { request } = require("@octokit/request");
 const github = __importStar(__webpack_require__(469));
+const core = __importStar(__webpack_require__(470));
+const JiraClient = __importStar(__webpack_require__(364));
+const execa = __importStar(__webpack_require__(955));
+const util = __importStar(__webpack_require__(669));
 main();
 async function main() {
     if (!process.env.GITHUB_TOKEN) {
-        core_1.default.setFailed(`GITHUB_TOKEN is not configured. Make sure you made it available to your action
+        core.setFailed(`GITHUB_TOKEN is not configured. Make sure you made it available to your action
   
   uses: bolteu/ios-jira-create-release-ticket-action@master
   env:
@@ -19749,25 +19537,25 @@ async function main() {
         return;
     }
     if (!process.env.GITHUB_REPOSITORY) {
-        core_1.default.setFailed('GITHUB_REPOSITORY missing, must be set to "<repo owner>/<repo name>"');
+        core.setFailed('GITHUB_REPOSITORY missing, must be set to "<repo owner>/<repo name>"');
         return;
     }
     if (!process.env.GITHUB_HEAD_REF) {
-        core_1.default.setFailed("GITHUB_HEAD_REF missing, must be set to the repository's default branch");
+        core.setFailed("GITHUB_HEAD_REF missing, must be set to the repository's default branch");
         return;
     }
     try {
         const inputs = {
-            jiraAccount: core_1.default.getInput("jiraAccount"),
-            jiraToken: core_1.default.getInput("jiraToken"),
-            jiraHost: core_1.default.getInput("jiraHost"),
-            projectName: core_1.default.getInput("projectName"),
-            versionSuffix: core_1.default.getInput("versionSuffix"),
-            jiraProjectId: +core_1.default.getInput("jiraProjectId"),
-            jiraTaskTypeId: +core_1.default.getInput("jiraTaskTypeId")
+            jiraAccount: core.getInput("jiraAccount"),
+            jiraToken: core.getInput("jiraToken"),
+            jiraHost: core.getInput("jiraHost"),
+            projectName: core.getInput("projectName"),
+            versionSuffix: core.getInput("versionSuffix"),
+            jiraProjectId: +core.getInput("jiraProjectId"),
+            jiraTaskTypeId: +core.getInput("jiraTaskTypeId")
         };
-        core_1.default.debug(`Inputs: ${util_1.inspect(inputs)}`);
-        const token = core_1.default.getInput('github-token', { required: true });
+        core.debug(`Inputs: ${util.inspect(inputs)}`);
+        const token = core.getInput('github-token', { required: true });
         const octokit = github.getOctokit(token);
         let { owner, repo } = github.context.repo;
         // checking the branch
@@ -19786,8 +19574,8 @@ async function main() {
         await runShellCommand(`git fetch origin ${process.env.GITHUB_HEAD_REF}`);
         var version = await runShellCommand(`sed -n '/MARKETING_VERSION/{s/MARKETING_VERSION = //;s/;//;s/^[[:space:]]*//;p;q;}' ./${inputs.projectName}.xcodeproj/project.pbxproj`);
         version = `${inputs.versionSuffix}.${version}`;
-        core_1.default.info("Version number is " + version);
-        var jira = new jira_js_1.Client({
+        core.info("Version number is " + version);
+        var jira = new JiraClient.Client({
             host: inputs.jiraHost,
             authentication: {
                 basic: {
@@ -19796,21 +19584,21 @@ async function main() {
                 }
             }
         });
-        core_1.default.info(`Creating ${version} for project -> ${inputs.jiraProjectId}`);
+        core.info(`Creating ${version} for project -> ${inputs.jiraProjectId}`);
         await jira.projectVersions.createVersion({ projectId: inputs.jiraProjectId, name: version }).catch(function (error) {
-            core_1.default.info(error);
+            core.info(error);
         });
         var errors = [];
-        core_1.default.info(`Searching for release ticket -> ${version}`);
+        core.info(`Searching for release ticket -> ${version}`);
         var shouldCreateNewReleaseTicket = false;
         await jira.issueSearch.searchForIssuesUsingJqlGet({
             jql: `Release ${version}`
         }).then((result) => {
-            core_1.default.info(`Found number of release tickets -> ${result.total}`);
+            core.info(`Found number of release tickets -> ${result.total}`);
             shouldCreateNewReleaseTicket = result.total == 0;
         })
             .catch(function (error) {
-            core_1.default.info(error);
+            core.info(error);
             // clear headers
             var printableError = JSON.parse(error);
             printableError.headers = null;
@@ -19819,7 +19607,7 @@ async function main() {
             errors.push(JSON.stringify(printableError));
         });
         if (shouldCreateNewReleaseTicket) {
-            core_1.default.info(`Creating relase ticket ${version} for project -> ${inputs.jiraProjectId}`);
+            core.info(`Creating relase ticket ${version} for project -> ${inputs.jiraProjectId}`);
             await jira.issues.createIssue({
                 fields: {
                     project: { id: inputs.jiraProjectId },
@@ -19828,10 +19616,10 @@ async function main() {
                 }
             }, (error, issue) => {
                 if (issue) {
-                    core_1.default.info(`Created release ticket -> ${issue}`);
+                    core.info(`Created release ticket -> ${issue}`);
                 }
                 if (error) {
-                    core_1.default.info(error);
+                    core.info(error);
                 }
             });
         }
@@ -19847,20 +19635,20 @@ async function main() {
         });
     }
     catch (error) {
-        core_1.default.debug(util_1.inspect(error));
-        core_1.default.setFailed(error.message);
+        core.debug(util.inspect(error));
+        core.setFailed(error.message);
     }
 }
 async function runShellCommand(commandString) {
-    core_1.default.debug(`$ ${commandString}`);
+    core.debug(`$ ${commandString}`);
     try {
-        const { stdout, stderr } = await execa_1.command(commandString, { shell: true });
+        const { stdout, stderr } = await execa.command(commandString, { shell: true });
         const output = [stdout, stderr].filter(Boolean).join("\n");
-        core_1.default.debug(output);
+        core.debug(output);
         return output;
     }
     catch (error) {
-        core_1.default.debug(util_1.inspect(error));
+        core.debug(util.inspect(error));
         throw error;
     }
 }
@@ -20207,7 +19995,7 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var endpoint = __webpack_require__(385);
 var universalUserAgent = __webpack_require__(392);
-var isPlainObject = _interopDefault(__webpack_require__(874));
+var isPlainObject = _interopDefault(__webpack_require__(696));
 var nodeFetch = _interopDefault(__webpack_require__(454));
 var requestError = __webpack_require__(257);
 
@@ -21167,7 +20955,139 @@ exports.getUserAgent = getUserAgent;
 
 
 /***/ }),
-/* 769 */,
+/* 769 */
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Webhooks = void 0;
+var Webhooks = /** @class */ (function () {
+    function Webhooks(client) {
+        this.client = client;
+    }
+    Webhooks.prototype.getDynamicWebhooksForApp = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                params = params || {};
+                request = {
+                    url: '/rest/api/2/webhook',
+                    method: 'GET',
+                    params: {
+                        startAt: params.startAt,
+                        maxResults: params.maxResults,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Webhooks.prototype.registerDynamicWebhooks = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: '/rest/api/2/webhook',
+                    method: 'POST',
+                    data: {
+                        webhooks: params.webhooks,
+                        url: params.url,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Webhooks.prototype.deleteWebhooksById = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: '/rest/api/2/webhook',
+                    method: 'DELETE',
+                    data: {
+                        webhookIds: params.webhookIds,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Webhooks.prototype.getFailedWebhooks = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                params = params || {};
+                request = {
+                    url: '/rest/api/2/webhook/failed',
+                    method: 'GET',
+                    params: {
+                        maxResults: params.maxResults,
+                        after: params.after,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    Webhooks.prototype.extendWebhookLife = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: '/rest/api/2/webhook/refresh',
+                    method: 'PUT',
+                    data: {
+                        webhookIds: params.webhookIds,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    return Webhooks;
+}());
+exports.Webhooks = Webhooks;
+
+
+/***/ }),
 /* 770 */,
 /* 771 */,
 /* 772 */,
@@ -21315,7 +21235,7 @@ exports.IssueVotes = IssueVotes;
 "use strict";
 
 
-const { PassThrough } = __webpack_require__(413);
+const { PassThrough } = __webpack_require__(794);
 
 module.exports = function (/*streams...*/) {
   var sources = []
@@ -21525,79 +21445,9 @@ module.exports = {
 /* 792 */,
 /* 793 */,
 /* 794 */
-/***/ (function(__unusedmodule, exports) {
+/***/ (function(module) {
 
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.GroupAndUserPicker = void 0;
-var GroupAndUserPicker = /** @class */ (function () {
-    function GroupAndUserPicker(client) {
-        this.client = client;
-    }
-    GroupAndUserPicker.prototype.findUsersAndGroups = function (params, callback) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                request = {
-                    url: '/rest/api/2/groupuserpicker',
-                    method: 'GET',
-                    params: {
-                        query: params.query,
-                        maxResults: params.maxResults,
-                        showAvatar: params.showAvatar,
-                        fieldId: params.fieldId,
-                        projectId: params.projectId && params.projectId.join(','),
-                        issueTypeId: params.issueTypeId && params.issueTypeId.join(','),
-                        avatarSize: params.avatarSize,
-                        caseInsensitive: params.caseInsensitive,
-                        excludeConnectAddons: params.excludeConnectAddons,
-                    },
-                };
-                return [2 /*return*/, this.client.sendRequest(request, callback)];
-            });
-        });
-    };
-    return GroupAndUserPicker;
-}());
-exports.GroupAndUserPicker = GroupAndUserPicker;
-
+module.exports = require("stream");
 
 /***/ }),
 /* 795 */,
@@ -22994,7 +22844,191 @@ exports.getUserAgent = getUserAgent;
 /* 849 */,
 /* 850 */,
 /* 851 */,
-/* 852 */,
+/* 852 */
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.IssueCustomFieldOptionsApps = void 0;
+var IssueCustomFieldOptionsApps = /** @class */ (function () {
+    function IssueCustomFieldOptionsApps(client) {
+        this.client = client;
+    }
+    IssueCustomFieldOptionsApps.prototype.getAllIssueFieldOptions = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/field/" + params.fieldKey + "/option",
+                    method: 'GET',
+                    params: {
+                        startAt: params.startAt,
+                        maxResults: params.maxResults,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    IssueCustomFieldOptionsApps.prototype.createIssueFieldOption = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/field/" + params.fieldKey + "/option",
+                    method: 'POST',
+                    data: __assign(__assign({}, params), { fieldKey: undefined }),
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    IssueCustomFieldOptionsApps.prototype.getSelectableIssueFieldOptions = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/field/" + params.fieldKey + "/option/suggestions/edit",
+                    method: 'GET',
+                    params: {
+                        startAt: params.startAt,
+                        maxResults: params.maxResults,
+                        projectId: params.projectId,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    IssueCustomFieldOptionsApps.prototype.getVisibleIssueFieldOptions = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/field/" + params.fieldKey + "/option/suggestions/search",
+                    method: 'GET',
+                    params: {
+                        startAt: params.startAt,
+                        maxResults: params.maxResults,
+                        projectId: params.projectId,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    IssueCustomFieldOptionsApps.prototype.getIssueFieldOption = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/field/" + params.fieldKey + "/option/" + params.optionId,
+                    method: 'GET',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    IssueCustomFieldOptionsApps.prototype.updateIssueFieldOption = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/field/" + params.fieldKey + "/option/" + params.optionId,
+                    method: 'PUT',
+                    data: {
+                        id: params.id,
+                        value: params.value,
+                        properties: params.properties,
+                        config: params.config,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    IssueCustomFieldOptionsApps.prototype.deleteIssueFieldOption = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/field/" + params.fieldKey + "/option/" + params.optionId,
+                    method: 'DELETE',
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    IssueCustomFieldOptionsApps.prototype.replaceIssueFieldOption = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: "/rest/api/2/field/" + params.fieldKey + "/option/" + params.optionId + "/issue",
+                    method: 'DELETE',
+                    params: {
+                        replaceWith: params.replaceWith,
+                        jql: params.jql,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    return IssueCustomFieldOptionsApps;
+}());
+exports.IssueCustomFieldOptionsApps = IssueCustomFieldOptionsApps;
+
+
+/***/ }),
 /* 853 */,
 /* 854 */
 /***/ (function(__unusedmodule, exports) {
@@ -23117,13 +23151,7 @@ exports.Permissions = Permissions;
 
 /***/ }),
 /* 855 */,
-/* 856 */
-/***/ (function(module, __unusedexports, __webpack_require__) {
-
-module.exports = __webpack_require__(141);
-
-
-/***/ }),
+/* 856 */,
 /* 857 */,
 /* 858 */,
 /* 859 */,
@@ -23227,49 +23255,7 @@ module.exports = require("tty");
 /* 871 */,
 /* 872 */,
 /* 873 */,
-/* 874 */
-/***/ (function(module) {
-
-"use strict";
-
-
-/*!
- * is-plain-object <https://github.com/jonschlinkert/is-plain-object>
- *
- * Copyright (c) 2014-2017, Jon Schlinkert.
- * Released under the MIT License.
- */
-
-function isObject(o) {
-  return Object.prototype.toString.call(o) === '[object Object]';
-}
-
-function isPlainObject(o) {
-  var ctor,prot;
-
-  if (isObject(o) === false) return false;
-
-  // If has modified constructor
-  ctor = o.constructor;
-  if (ctor === undefined) return true;
-
-  // If has modified prototype
-  prot = ctor.prototype;
-  if (isObject(prot) === false) return false;
-
-  // If constructor does not have an Object-specific method
-  if (prot.hasOwnProperty('isPrototypeOf') === false) {
-    return false;
-  }
-
-  // Most likely a plain Object
-  return true;
-}
-
-module.exports = isPlainObject;
-
-
-/***/ }),
+/* 874 */,
 /* 875 */,
 /* 876 */,
 /* 877 */,
@@ -23487,7 +23473,82 @@ module.exports = parse;
 
 /***/ }),
 /* 885 */,
-/* 886 */,
+/* 886 */
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.GroupAndUserPicker = void 0;
+var GroupAndUserPicker = /** @class */ (function () {
+    function GroupAndUserPicker(client) {
+        this.client = client;
+    }
+    GroupAndUserPicker.prototype.findUsersAndGroups = function (params, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                request = {
+                    url: '/rest/api/2/groupuserpicker',
+                    method: 'GET',
+                    params: {
+                        query: params.query,
+                        maxResults: params.maxResults,
+                        showAvatar: params.showAvatar,
+                        fieldId: params.fieldId,
+                        projectId: params.projectId && params.projectId.join(','),
+                        issueTypeId: params.issueTypeId && params.issueTypeId.join(','),
+                        avatarSize: params.avatarSize,
+                        caseInsensitive: params.caseInsensitive,
+                        excludeConnectAddons: params.excludeConnectAddons,
+                    },
+                };
+                return [2 /*return*/, this.client.sendRequest(request, callback)];
+            });
+        });
+    };
+    return GroupAndUserPicker;
+}());
+exports.GroupAndUserPicker = GroupAndUserPicker;
+
+
+/***/ }),
 /* 887 */
 /***/ (function(module) {
 
@@ -23968,66 +24029,7 @@ exports.withCustomRequest = withCustomRequest;
 /* 899 */,
 /* 900 */,
 /* 901 */,
-/* 902 */
-/***/ (function(__unusedmodule, exports, __webpack_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getOctokitOptions = exports.GitHub = exports.context = void 0;
-const Context = __importStar(__webpack_require__(262));
-const Utils = __importStar(__webpack_require__(127));
-// octokit + plugins
-const core_1 = __webpack_require__(448);
-const plugin_rest_endpoint_methods_1 = __webpack_require__(713);
-const plugin_paginate_rest_1 = __webpack_require__(322);
-exports.context = new Context.Context();
-const baseUrl = Utils.getApiBaseUrl();
-const defaults = {
-    baseUrl,
-    request: {
-        agent: Utils.getProxyAgent(baseUrl)
-    }
-};
-exports.GitHub = core_1.Octokit.plugin(plugin_rest_endpoint_methods_1.restEndpointMethods, plugin_paginate_rest_1.paginateRest).defaults(defaults);
-/**
- * Convience function to correctly format Octokit Options to pass into the constructor.
- *
- * @param     token    the repo PAT or GITHUB_TOKEN
- * @param     options  other options to set
- */
-function getOctokitOptions(token, options) {
-    const opts = Object.assign({}, options || {}); // Shallow clone - don't mutate the object provided by the caller
-    // Auth
-    const auth = Utils.getAuthString(token, opts);
-    if (auth) {
-        opts.auth = auth;
-    }
-    return opts;
-}
-exports.getOctokitOptions = getOctokitOptions;
-//# sourceMappingURL=utils.js.map
-
-/***/ }),
+/* 902 */,
 /* 903 */,
 /* 904 */,
 /* 905 */
@@ -24391,12 +24393,7 @@ exports.Groups = Groups;
 /* 934 */,
 /* 935 */,
 /* 936 */,
-/* 937 */
-/***/ (function(module) {
-
-module.exports = require("net");
-
-/***/ }),
+/* 937 */,
 /* 938 */,
 /* 939 */,
 /* 940 */
