@@ -4,7 +4,7 @@
   "description": "A GitHub Action to create a release ticket in Jira",
   "main": "index.js",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc && ncc build -o dist/ index.ts"
   },
   "repository": {
     "type": "git",
