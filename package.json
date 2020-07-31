@@ -19,7 +19,7 @@
   "homepage": "https://github.com/NikitaRuzanov/ios-jira-create-release-ticket-action#readme",
   "dependencies": {
     "@actions/core": "^1.2.4",
-    "@actions/github": "^1.1.0",
+    "@actions/github": "^4.0.0",
     "@octokit/request": "^5.4.7",
     "execa": "^4.0.3",
     "jira.js": "^1.6.0",
