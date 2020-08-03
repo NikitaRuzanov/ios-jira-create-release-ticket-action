@@ -19615,7 +19615,7 @@ async function main() {
                     issuetype: { id: inputs.jiraTaskTypeId },
                     assignee: { id: inputs.jiraTaskAssigneeId }
                 },
-                components: ["iOS"]
+                components: [{ id: inputs.jiraTaskComponentId }]
             }, (error, issue) => {
                 if (issue) {
                     core.info(`Created release ticket -> ${util.inspect(issue, { depth: 100, maxArrayLength: 500 })}`);

@@ -112,7 +112,7 @@ async function main() {
           summary: `Release ${version}`, 
           issuetype: { id: inputs.jiraTaskTypeId },
           assignee: { id: inputs.jiraTaskAssigneeId } },
-          components: [ "iOS" ] 
+          components: [ { id: inputs.jiraTaskComponentId } ] 
       },
       (error: any, issue: any) => {
         if (issue) {
