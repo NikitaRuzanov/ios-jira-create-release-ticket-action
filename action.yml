@@ -22,7 +22,7 @@ inputs:
   jiraHost:
     description: "Jira Host"
     required: true
-    default: "taxify.atlassian.net"
+    default: "https://taxify.atlassian.net"
   jiraProjectId:
     description: "Id of Jira Projects where to create release version and ticket \"1111\""
     required: true
