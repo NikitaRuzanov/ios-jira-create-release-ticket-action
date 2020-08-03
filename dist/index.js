@@ -19553,31 +19553,13 @@ async function main() {
             versionSuffix: core.getInput("versionSuffix"),
             jiraProjectId: core.getInput("jiraProjectId"),
             jiraTaskTypeId: core.getInput("jiraTaskTypeId"),
-            jiraTaskAssigneeId: core.getInput("jiraTaskAssigneeId")
+            jiraTaskAssigneeId: core.getInput("jiraTaskAssigneeId"),
+            jiraTaskComponentId: core.getInput("jiraTaskComponentId")
         };
         core.debug(`Inputs: ${util.inspect(inputs)}`);
         const token = core.getInput('github-token', { required: true });
         const octokit = github.getOctokit(token);
         let { owner, repo } = github.context.repo;
-        // Testing stuff
-        var jira_test = new JiraClient.Client({
-            host: inputs.jiraHost,
-            authentication: {
-                basic: {
-                    username: inputs.jiraAccount,
-                    apiToken: inputs.jiraToken
-                }
-            }
-        });
-        await jira_test.issues.getCreateIssueMetadata({ projectIds: [inputs.jiraProjectId], issuetypeIds: [inputs.jiraTaskTypeId], expand: "projects.issuetypes.fields" }, (error, data) => {
-            core.debug("Finished getting metadata");
-            if (data) {
-                core.debug(`Create task metadata -> ${util.inspect(data, { depth: 100, maxArrayLength: 500 })}`);
-            }
-            if (error) {
-                core.debug(error);
-            }
-        });
         // checking the branch
         const brachRegexp = new RegExp(`(release|hotfix)\/${inputs.versionSuffix}.\\d{1,2}.\\d{1,3}`);
         const brachVerification = process.env.GITHUB_HEAD_REF.match(/release/gmi);
@@ -19634,10 +19616,11 @@ async function main() {
                     summary: `Release ${version}`,
                     issuetype: { id: inputs.jiraTaskTypeId },
                     assignee: { id: inputs.jiraTaskTypeId }
-                }
+                },
+                components: [inputs.jiraTaskComponentId]
             }, (error, issue) => {
                 if (issue) {
-                    core.info(`Created release ticket -> ${issue}`);
+                    core.info(`Created release ticket -> ${util.inspect(issue, { depth: 100, maxArrayLength: 500 })}`);
                 }
                 if (error) {
                     core.info(error);

@@ -32,6 +32,9 @@ inputs:
   jiraTaskAssigneeId:
     description: "Id of Jira user to use as Assignee"
     required: true
+  jiraTaskComponentId:
+    description: "Id for Jira component field"
+    required: true
 runs:
   using: "node12"
   main: "dist/index.js"
