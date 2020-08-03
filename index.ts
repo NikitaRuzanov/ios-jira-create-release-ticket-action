@@ -112,7 +112,7 @@ async function main() {
           summary: `Release ${version}`, 
           issuetype: { id: inputs.jiraTaskTypeId },
           assignee: { id: inputs.jiraTaskAssigneeId } },
-          components: [ +inputs.jiraTaskComponentId ] 
+          components: [ "iOS" ] 
       },
       (error: any, issue: any) => {
         if (issue) {
@@ -131,7 +131,11 @@ async function main() {
       body = body + `\n\n🆘 There are errors while creating release ticket: \n\n ${errors.join("\n\n")}`
     }
     else if (issueID.length > 0) {
-      body = body + `\n\nTicket link: ${inputs.jiraHost}/browse/${issueID}`
+      body = body + `\n\nSlack message:\n`
+      body = body + `\n@mobile-qa, release ${version} is ready for testing`
+      body = body + `\n* branch: ${process.env.GITHUB_HEAD_REF}`
+      body = body + `\n* Github PR: https://github.com/${github.context.issue.owner}/${github.context.issue.repo}/pull/${github.context.issue.number}`
+      body = body + `\n* Jira ticket: ${inputs.jiraHost}/browse/${issueID}`
     }
     await octokit.issues.createComment({
       owner,
