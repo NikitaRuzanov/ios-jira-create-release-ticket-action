@@ -19595,18 +19595,14 @@ async function main() {
         var shouldCreateNewReleaseTicket = false;
         await jira.issueSearch.searchForIssuesUsingJqlGet({
             jql: `Release ${version}`
-        }).then((result) => {
-            core.info(`Found number of release tickets -> ${result.total}`);
-            shouldCreateNewReleaseTicket = result.total == 0;
-        })
-            .catch(function (error) {
-            core.info(error);
-            // clear headers
-            var printableError = JSON.parse(error);
-            printableError.headers = null;
-            printableError.issue = printableError.request.uri.path;
-            printableError.request = null;
-            errors.push(JSON.stringify(printableError));
+        }, (error, result) => {
+            if (result) {
+                core.info(`Result of search -> ${util.inspect(result, { depth: 100, maxArrayLength: 500 })}`);
+                shouldCreateNewReleaseTicket = result.total == 0;
+            }
+            if (error) {
+                core.info(util.inspect(error));
+            }
         });
         if (shouldCreateNewReleaseTicket) {
             core.info(`Creating relase ticket ${version} for project -> ${inputs.jiraProjectId}`);
@@ -19627,7 +19623,7 @@ async function main() {
                 }
             });
         }
-        var body = `Release ticket has been created 🎉 `;
+        var body = `Release ticket has been created 🎉`;
         if (errors.length > 0) {
             body = body + `\n\n🆘 There are errors while creating release ticket: \n\n ${errors.join("\n\n")}`;
         }
