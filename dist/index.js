@@ -19605,6 +19605,7 @@ async function main() {
                 throw error;
             }
         });
+        var issueID = "";
         if (shouldCreateNewReleaseTicket) {
             core.info(`Creating relase ticket ${version} for project -> ${inputs.jiraProjectId}`);
             await jira.issues.createIssue({
@@ -19614,10 +19615,11 @@ async function main() {
                     issuetype: { id: inputs.jiraTaskTypeId },
                     assignee: { id: inputs.jiraTaskAssigneeId }
                 },
-                components: [inputs.jiraTaskComponentId]
+                components: [+inputs.jiraTaskComponentId]
             }, (error, issue) => {
                 if (issue) {
                     core.info(`Created release ticket -> ${util.inspect(issue, { depth: 100, maxArrayLength: 500 })}`);
+                    issueID = issue.key;
                 }
                 if (error) {
                     core.info(error);
@@ -19628,6 +19630,9 @@ async function main() {
         var body = `Release ticket has been created 🎉`;
         if (errors.length > 0) {
             body = body + `\n\n🆘 There are errors while creating release ticket: \n\n ${errors.join("\n\n")}`;
+        }
+        else if (issueID.length > 0) {
+            body = body + `\n\nTicket link: ${inputs.jiraHost}/browse/${issueID}`;
         }
         await octokit.issues.createComment({
             owner,
