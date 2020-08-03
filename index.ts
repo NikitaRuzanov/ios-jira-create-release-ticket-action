@@ -90,7 +90,7 @@ async function main() {
     core.info(`Searching for release ticket -> ${version}` )
     var shouldCreateNewReleaseTicket = false
     await jira.issueSearch.searchForIssuesUsingJqlGet({
-      jql: `Release ${version}`
+      jql: `issuetype = Release AND text ~ ${version}`
     },
     (error: any, result: any) => {
       if (result) {
