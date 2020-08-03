@@ -59,7 +59,7 @@ async function main() {
         }
       }
     })
-    await jira_test.issues.getCreateIssueMetadata({projectIds: [inputs.jiraProjectId], issuetypeIds: [inputs.jiraTaskTypeId], expand: "."},
+    await jira_test.issues.getCreateIssueMetadata({projectIds: [inputs.jiraProjectId], issuetypeIds: [inputs.jiraTaskTypeId], expand: "fields"},
       (error: any, data: any) => {
         core.debug("Finished getting metadata")
         if (data) {
