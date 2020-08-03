@@ -29,6 +29,9 @@ inputs:
   jiraTaskTypeId:
     description: "Id of Jira task type to create ticket with \"22222\""
     required: true
+  jiraTaskAssigneeId:
+    description: "Id of Jira user to use as Assignee"
+    required: true
 runs:
   using: "node12"
   main: "dist/index.js"

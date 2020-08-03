@@ -40,7 +40,8 @@ async function main() {
       projectName: core.getInput("projectName"),
       versionSuffix: core.getInput("versionSuffix"),
       jiraProjectId: core.getInput("jiraProjectId"),
-      jiraTaskTypeId: core.getInput("jiraTaskTypeId")
+      jiraTaskTypeId: core.getInput("jiraTaskTypeId"),
+      jiraTaskAssigneeId: core.getInput("jiraTaskAssigneeId")
     };
 
     core.debug(`Inputs: ${util.inspect(inputs)}`);
@@ -132,7 +133,8 @@ async function main() {
         fields: { 
           project: { id: inputs.jiraProjectId }, 
           summary: `Release ${version}`, 
-          issuetype: { id: inputs.jiraTaskTypeId } } 
+          issuetype: { id: inputs.jiraTaskTypeId },
+          assignee: { id: inputs.jiraTaskTypeId } } 
       },
       (error: any, issue: any) => {
         if (issue) {
