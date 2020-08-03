@@ -19568,7 +19568,7 @@ async function main() {
                 }
             }
         });
-        await jira_test.issues.getCreateIssueMetadata({ projectIds: [inputs.jiraProjectId], issuetypeIds: [inputs.jiraTaskTypeId] }, (error, data) => {
+        await jira_test.issues.getCreateIssueMetadata({ projectIds: [inputs.jiraProjectId], issuetypeIds: [inputs.jiraTaskTypeId], expand: "." }, (error, data) => {
             core.debug("Finished getting metadata");
             if (data) {
                 core.debug(`Create task metadata -> ${util.inspect(data, { depth: 100, maxArrayLength: 500 })}`);
