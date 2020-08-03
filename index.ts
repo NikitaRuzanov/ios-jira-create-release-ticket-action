@@ -61,11 +61,12 @@ async function main() {
     })
     await jira_test.issues.getCreateIssueMetadata({projectIds: [inputs.jiraProjectId]},
       (error: any, data: any) => {
+        core.debug("Finished getting metadata")
         if (data) {
-          core.info(`Create task metadata -> ${data}`)
+          core.debug(`Create task metadata -> ${data}`)
         }
         if (error) {
-          core.info(error)
+          core.debug(error)
         }
       })
 
