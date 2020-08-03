@@ -19602,6 +19602,7 @@ async function main() {
             }
             if (error) {
                 core.info(util.inspect(error, { depth: 100, maxArrayLength: 500 }));
+                throw error;
             }
         });
         if (shouldCreateNewReleaseTicket) {
@@ -19620,6 +19621,7 @@ async function main() {
                 }
                 if (error) {
                     core.info(error);
+                    throw error;
                 }
             });
         }
@@ -19635,7 +19637,7 @@ async function main() {
         });
     }
     catch (error) {
-        core.debug(util.inspect(error));
+        core.debug(util.inspect(error, { depth: null, maxArrayLength: null }));
         core.setFailed(error.message);
     }
 }
