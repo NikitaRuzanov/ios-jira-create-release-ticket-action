@@ -19612,7 +19612,7 @@ async function main() {
                     project: { id: inputs.jiraProjectId },
                     summary: `Release ${version}`,
                     issuetype: { id: inputs.jiraTaskTypeId },
-                    assignee: { id: inputs.jiraTaskTypeId }
+                    assignee: { id: inputs.jiraTaskAssigneeId }
                 },
                 components: [inputs.jiraTaskComponentId]
             }, (error, issue) => {
