@@ -19634,9 +19634,9 @@ async function main() {
         else if (issueID.length > 0) {
             body = body + `\n\nSlack message:\n`;
             body = body + `\n@mobile-qa, release ${version} is ready for testing`;
-            body = body + `\nbranch: ${process.env.GITHUB_HEAD_REF}`;
-            body = body + `\nGithub PR: https://github.com/${github.context.issue.owner}/${github.context.issue.repo}/pull/${github.context.issue.number}`;
-            body = body + `\nJira ticket: ${inputs.jiraHost}/browse/${issueID}`;
+            body = body + `\n- branch: ${process.env.GITHUB_HEAD_REF}`;
+            body = body + `\n- Github PR: https://github.com/${github.context.issue.owner}/${github.context.issue.repo}/pull/${github.context.issue.number}`;
+            body = body + `\n- Jira ticket: ${inputs.jiraHost}/browse/${issueID}`;
         }
         await octokit.issues.createComment({
             owner,
