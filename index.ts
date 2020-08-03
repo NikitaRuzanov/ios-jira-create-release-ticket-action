@@ -39,8 +39,8 @@ async function main() {
       jiraHost: core.getInput("jiraHost"),
       projectName: core.getInput("projectName"),
       versionSuffix: core.getInput("versionSuffix"),
-      jiraProjectId: +core.getInput("jiraProjectId"),
-      jiraTaskTypeId: +core.getInput("jiraTaskTypeId")
+      jiraProjectId: core.getInput("jiraProjectId"),
+      jiraTaskTypeId: core.getInput("jiraTaskTypeId")
     };
 
     core.debug(`Inputs: ${util.inspect(inputs)}`);
@@ -48,6 +48,27 @@ async function main() {
     const token = core.getInput('github-token', {required: true})
     const octokit = github.getOctokit(token);
     let { owner, repo } = github.context.repo;
+
+    // Testing stuff
+    var jira_test = new JiraClient.Client({
+      host: inputs.jiraHost,
+      authentication: {
+        basic: {
+          username: inputs.jiraAccount,
+          apiToken: inputs.jiraToken
+        }
+      }
+    })
+    await jira_test.issues.getCreateIssueMetadata({projectIds: [inputs.jiraProjectId]},
+      (error: any, data: any) => {
+        if (data) {
+          core.info(`Create task metadata -> ${data}`)
+        }
+        if (error) {
+          core.info(error)
+        }
+      })
+
 
     // checking the branch
     const brachRegexp = new RegExp(`release\/${inputs.versionSuffix}.\\d{1,2}.\\d{1,3}`)
@@ -78,9 +99,8 @@ async function main() {
       }
     })
 
-
     core.info(`Creating ${version} for project -> ${inputs.jiraProjectId}` )
-    await jira.projectVersions.createVersion({ projectId : inputs.jiraProjectId, name: version }).catch(function(error: any) {
+    await jira.projectVersions.createVersion({ projectId : +inputs.jiraProjectId, name: version }).catch(function(error: any) {
       core.info(error)
     });
 
