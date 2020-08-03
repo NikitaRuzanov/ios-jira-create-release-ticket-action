@@ -98,7 +98,7 @@ async function main() {
         shouldCreateNewReleaseTicket = result.total == 0
       }
       if (error) {
-        core.info(util.inspect(error))
+        core.info(util.inspect(error, {depth: 100, maxArrayLength: 500}))
       }
     })
 
