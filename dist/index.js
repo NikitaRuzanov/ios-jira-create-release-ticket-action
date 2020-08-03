@@ -19571,14 +19571,14 @@ async function main() {
         await jira_test.issues.getCreateIssueMetadata({ projectIds: [inputs.jiraProjectId] }, (error, data) => {
             core.debug("Finished getting metadata");
             if (data) {
-                core.debug(`Create task metadata -> ${data}`);
+                core.debug(`Create task metadata -> ${util.inspect(data)}`);
             }
             if (error) {
                 core.debug(error);
             }
         });
         // checking the branch
-        const brachRegexp = new RegExp(`release\/${inputs.versionSuffix}.\\d{1,2}.\\d{1,3}`);
+        const brachRegexp = new RegExp(`(release|hotfix)\/${inputs.versionSuffix}.\\d{1,2}.\\d{1,3}`);
         const brachVerification = process.env.GITHUB_HEAD_REF.match(/release/gmi);
         if (brachVerification == null) {
             const body = `Wrong brach format. Please fix it. Expected format is ${brachRegexp}`;
