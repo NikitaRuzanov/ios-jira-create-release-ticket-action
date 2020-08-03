@@ -63,7 +63,8 @@ async function main() {
       (error: any, data: any) => {
         core.debug("Finished getting metadata")
         if (data) {
-          core.debug(`Create task metadata -> ${util.inspect(data)}`)
+          core.debug(`Create task metadata -> ${util.inspect(data, {depth: 100, maxArrayLength: 500})}`)
+          core.debug(`issuetypes -> ${util.inspect(data["projects"][0]["issuetypes"])}`)
         }
         if (error) {
           core.debug(error)

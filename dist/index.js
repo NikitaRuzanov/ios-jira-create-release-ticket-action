@@ -19571,7 +19571,8 @@ async function main() {
         await jira_test.issues.getCreateIssueMetadata({ projectIds: [inputs.jiraProjectId] }, (error, data) => {
             core.debug("Finished getting metadata");
             if (data) {
-                core.debug(`Create task metadata -> ${util.inspect(data)}`);
+                core.debug(`Create task metadata -> ${util.inspect(data, { depth: 100, maxArrayLength: 500 })}`);
+                core.debug(`issuetypes -> ${util.inspect(data["projects"][0]["issuetypes"])}`);
             }
             if (error) {
                 core.debug(error);
