@@ -19551,13 +19551,32 @@ async function main() {
             jiraHost: core.getInput("jiraHost"),
             projectName: core.getInput("projectName"),
             versionSuffix: core.getInput("versionSuffix"),
-            jiraProjectId: +core.getInput("jiraProjectId"),
-            jiraTaskTypeId: +core.getInput("jiraTaskTypeId")
+            jiraProjectId: core.getInput("jiraProjectId"),
+            jiraTaskTypeId: core.getInput("jiraTaskTypeId")
         };
         core.debug(`Inputs: ${util.inspect(inputs)}`);
         const token = core.getInput('github-token', { required: true });
         const octokit = github.getOctokit(token);
         let { owner, repo } = github.context.repo;
+        // Testing stuff
+        var jira_test = new JiraClient.Client({
+            host: inputs.jiraHost,
+            authentication: {
+                basic: {
+                    username: inputs.jiraAccount,
+                    apiToken: inputs.jiraToken
+                }
+            }
+        });
+        await jira_test.issues.getCreateIssueMetadata({ projectIds: [inputs.jiraProjectId] }, (error, data) => {
+            core.debug("Finished getting metadata");
+            if (data) {
+                core.debug(`Create task metadata -> ${data}`);
+            }
+            if (error) {
+                core.debug(error);
+            }
+        });
         // checking the branch
         const brachRegexp = new RegExp(`release\/${inputs.versionSuffix}.\\d{1,2}.\\d{1,3}`);
         const brachVerification = process.env.GITHUB_HEAD_REF.match(/release/gmi);
@@ -19585,7 +19604,7 @@ async function main() {
             }
         });
         core.info(`Creating ${version} for project -> ${inputs.jiraProjectId}`);
-        await jira.projectVersions.createVersion({ projectId: inputs.jiraProjectId, name: version }).catch(function (error) {
+        await jira.projectVersions.createVersion({ projectId: +inputs.jiraProjectId, name: version }).catch(function (error) {
             core.info(error);
         });
         var errors = [];
