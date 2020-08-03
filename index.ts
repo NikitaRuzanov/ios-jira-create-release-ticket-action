@@ -63,7 +63,7 @@ async function main() {
       (error: any, data: any) => {
         core.debug("Finished getting metadata")
         if (data) {
-          core.debug(`Create task metadata -> ${data}`)
+          core.debug(`Create task metadata -> ${util.inspect(data)}`)
         }
         if (error) {
           core.debug(error)
