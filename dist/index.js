@@ -19528,19 +19528,8 @@ const execa = __importStar(__webpack_require__(955));
 const util = __importStar(__webpack_require__(669));
 main();
 async function main() {
-    if (!process.env.GITHUB_TOKEN) {
-        core.setFailed(`GITHUB_TOKEN is not configured. Make sure you made it available to your action
-  
-  uses: bolteu/ios-jira-create-release-ticket-action@master
-  env:
-    GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}`);
-        return;
-    }
-    if (!process.env.GITHUB_REPOSITORY) {
-        core.setFailed('GITHUB_REPOSITORY missing, must be set to "<repo owner>/<repo name>"');
-        return;
-    }
     if (!process.env.GITHUB_HEAD_REF) {
+        core.debug(util.inspect(process, { depth: null, maxArrayLength: null }));
         core.setFailed("GITHUB_HEAD_REF missing, must be set to the repository's default branch");
         return;
     }
