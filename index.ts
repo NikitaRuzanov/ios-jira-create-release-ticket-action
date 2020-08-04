@@ -15,7 +15,7 @@ async function main() {
       jiraToken: core.getInput("jiraToken"),
       jiraHost: core.getInput("jiraHost"),
       projectName: core.getInput("projectName"),
-      versionPrefix: core.getInput("versionSuffix"),
+      versionPrefix: core.getInput("versionPrefix"),
       jiraProjectId: core.getInput("jiraProjectId"),
       jiraTaskTypeId: core.getInput("jiraTaskTypeId"),
       jiraTaskAssigneeId: core.getInput("jiraTaskAssigneeId"),
