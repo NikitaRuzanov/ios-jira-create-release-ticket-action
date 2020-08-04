@@ -19550,7 +19550,7 @@ async function main() {
             jiraToken: core.getInput("jiraToken"),
             jiraHost: core.getInput("jiraHost"),
             projectName: core.getInput("projectName"),
-            versionSuffix: core.getInput("versionSuffix"),
+            versionPrefix: core.getInput("versionSuffix"),
             jiraProjectId: core.getInput("jiraProjectId"),
             jiraTaskTypeId: core.getInput("jiraTaskTypeId"),
             jiraTaskAssigneeId: core.getInput("jiraTaskAssigneeId"),
@@ -19561,7 +19561,7 @@ async function main() {
         const octokit = github.getOctokit(token);
         let { owner, repo } = github.context.repo;
         // checking the branch
-        const brachRegexp = new RegExp(`(release|hotfix)\/${inputs.versionSuffix}.\\d{1,2}.\\d{1,3}`);
+        const brachRegexp = new RegExp(`(release|hotfix)\/${inputs.versionPrefix}.\\d{1,2}.\\d{1,3}`);
         const brachVerification = process.env.GITHUB_HEAD_REF.match(/release/gmi);
         if (brachVerification == null) {
             const body = `Wrong brach format. Please fix it. Expected format is ${brachRegexp}`;
@@ -19575,7 +19575,7 @@ async function main() {
         }
         await runShellCommand(`git fetch origin ${process.env.GITHUB_HEAD_REF}`);
         var version = await runShellCommand(`sed -n '/MARKETING_VERSION/{s/MARKETING_VERSION = //;s/;//;s/^[[:space:]]*//;p;q;}' ./${inputs.projectName}.xcodeproj/project.pbxproj`);
-        version = `${inputs.versionSuffix}.${version}`;
+        version = `${inputs.versionPrefix}.${version}`;
         core.info("Version number is " + version);
         var jira = new JiraClient.Client({
             host: inputs.jiraHost,
