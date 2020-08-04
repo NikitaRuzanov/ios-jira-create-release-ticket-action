@@ -13,6 +13,9 @@ inputs:
   versionPrefix:
     description: "It will be appended before version"
     required: true
+  sourceBranch:
+    description: "Branch name to compare from [default: Master]"
+    required: true
   jiraAccount:
     description: "Jira account"
     required: true

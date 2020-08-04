@@ -19528,13 +19528,9 @@ const execa = __importStar(__webpack_require__(955));
 const util = __importStar(__webpack_require__(669));
 main();
 async function main() {
-    if (!process.env.GITHUB_HEAD_REF) {
-        core.debug(util.inspect(process, { depth: null, maxArrayLength: null }));
-        core.setFailed("GITHUB_HEAD_REF missing, must be set to the repository's default branch");
-        return;
-    }
     try {
         const inputs = {
+            sourceBranch: core.getInput("sourceBranch"),
             jiraAccount: core.getInput("jiraAccount"),
             jiraToken: core.getInput("jiraToken"),
             jiraHost: core.getInput("jiraHost"),
@@ -19551,7 +19547,7 @@ async function main() {
         let { owner, repo } = github.context.repo;
         // checking the branch
         const brachRegexp = new RegExp(`(release|hotfix)\/${inputs.versionPrefix}.\\d{1,2}.\\d{1,3}`);
-        const brachVerification = process.env.GITHUB_HEAD_REF.match(/release/gmi);
+        const brachVerification = inputs.sourceBranch.match(/release/gmi);
         if (brachVerification == null) {
             const body = `Wrong brach format. Please fix it. Expected format is ${brachRegexp}`;
             await octokit.issues.createComment({
@@ -19562,7 +19558,7 @@ async function main() {
             });
             throw "Wrong branch format";
         }
-        await runShellCommand(`git fetch origin ${process.env.GITHUB_HEAD_REF}`);
+        await runShellCommand(`git fetch origin ${inputs.sourceBranch}`);
         var version = await runShellCommand(`sed -n '/MARKETING_VERSION/{s/MARKETING_VERSION = //;s/;//;s/^[[:space:]]*//;p;q;}' ./${inputs.projectName}.xcodeproj/project.pbxproj`);
         version = `${inputs.versionPrefix}.${version}`;
         core.info("Version number is " + version);
@@ -19623,7 +19619,7 @@ async function main() {
         else if (issueID.length > 0) {
             body = body + `\n\nSlack message:\n`;
             body = body + `\n@mobile-qa, release ${version} is ready for testing`;
-            body = body + `\n- branch: ${process.env.GITHUB_HEAD_REF}`;
+            body = body + `\n- branch: ${inputs.sourceBranch}`;
             body = body + `\n- Github PR: https://github.com/${github.context.issue.owner}/${github.context.issue.repo}/pull/${github.context.issue.number}`;
             body = body + `\n- Jira ticket: ${inputs.jiraHost}/browse/${issueID}`;
         }
