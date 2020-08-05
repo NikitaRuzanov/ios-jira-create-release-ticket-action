@@ -103,16 +103,20 @@ async function main() {
       });
     }
 
-    var body = `Release ticket has been created 🎉`
+    var body = ``
     if (errors.length > 0) {
       body = body + `\n\n🆘 There are errors while creating release ticket: \n\n ${errors.join("\n\n")}`
     }
     else if (issueID.length > 0) {
+      body = body + `Release ticket has been created 🎉`
       body = body + `\n\nSlack message:\n`
       body = body + `\n@mobile-qa, release ${version} is ready for testing`
       body = body + `\n- branch: ${inputs.sourceBranch}`
       body = body + `\n- Github PR: https://github.com/${github.context.issue.owner}/${github.context.issue.repo}/pull/${github.context.issue.number}`
       body = body + `\n- Jira ticket: ${inputs.jiraHost}/browse/${issueID}`
+    }
+    else if (!shouldCreateNewReleaseTicket) {
+      body = body + `Release ticket already exists 👍`
     }
     await octokit.issues.createComment({
       owner,
