@@ -19520,7 +19520,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-//const { request } = require("@octokit/request");
 const github = __importStar(__webpack_require__(469));
 const core = __importStar(__webpack_require__(470));
 const JiraClient = __importStar(__webpack_require__(364));
