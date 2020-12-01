@@ -20,7 +20,7 @@
   "dependencies": {
     "@actions/core": "^1.2.4",
     "@actions/github": "^4.0.0",
-    "@octokit/request": "^5.4.7",
+    "@octokit/request": "^5.4.11",
     "execa": "^4.0.3",
     "jira.js": "^1.6.0",
     "typescript": "^3.6.3"
