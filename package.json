@@ -21,7 +21,7 @@
     "@actions/core": "^1.2.4",
     "@actions/github": "^4.0.0",
     "@octokit/request": "^5.4.7",
-    "execa": "^4.0.3",
+    "execa": "^5.0.1",
     "jira.js": "^1.6.0",
     "typescript": "^3.6.3"
   },
